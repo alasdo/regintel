@@ -1,2 +1,8 @@
-data/ecfr_cache/
 .env
+.env.*
+!.env.example
+data/ecfr_cache/
+eval/results/
+__pycache__/
+*.pyc
+.venv/

@@ -64,64 +64,29 @@ def build_section_full_text(
     return "\n".join(parts).strip()
 
 
-def parse_part_xml(
-    xml_bytes: bytes,
-    part_number: int,
-    version_date: date,
-) -> list[SectionRecord]:
-    """
-    Parse eCFR XML for a single CFR part into structured SectionRecord objects.
-
-    Expected XML shape for 21 CFR Part 211:
-        DIV5 TYPE="PART"     -> part
-        DIV6 TYPE="SUBPART"  -> subpart
-        DIV8 TYPE="SECTION"  -> section
-
-    Args:
-        xml_bytes: Raw XML bytes returned from the eCFR API
-        part_number: Expected CFR part number, e.g. 211
-        version_date: Date associated with the XML version
-
-    Returns:
-        A list of SectionRecord objects containing:
-            - one part record
-            - one record per subpart
-            - one record per section
-
-    Raises:
-        ValueError: If the XML does not look like the requested part.
-    """
+def parse_part_xml(xml_bytes: bytes, part_number: int, version_date: date) -> list[SectionRecord]:
     root = etree.fromstring(xml_bytes)
     records: list[SectionRecord] = []
 
-    # The scoped API response for a single part is expected to have the part
-    # itself as the root node.
     if root.tag != "DIV5" or root.attrib.get("TYPE") != "PART":
-        raise ValueError(
-            f"Expected root DIV5 TYPE=PART, got tag={root.tag}, attrs={dict(root.attrib)}"
-        )
+        raise ValueError(f"Expected root DIV5 TYPE=PART, got tag={root.tag}, attrs={dict(root.attrib)}")
 
-    root_part_number = root.attrib.get("N")
-    if root_part_number != str(part_number):
-        raise ValueError(
-            f"Expected part {part_number}, got part {root_part_number}"
-        )
+    root_n = root.attrib.get("N")
+    if root_n != str(part_number):
+        raise ValueError(f"Expected part {part_number}, got part {root_n}")
 
-    # ----------------------------
-    # Part record
-    # ----------------------------
     part_head = elem_text(root.find("HEAD")) or f"PART {part_number}"
 
-    part_text_parts: list[str] = []
+    # Part record
+    part_text_parts = []
     if part_head:
         part_text_parts.append(part_head)
 
-    # Keep top-level authority/source metadata in the part record.
     for child in root:
         if child.tag in {"AUTH", "SOURCE"}:
-            text = elem_text(child)
-            if text:
-                part_text_parts.append(text)
+            txt = elem_text(child)
+            if txt:
+                part_text_parts.append(txt)
 
     records.append(
         SectionRecord(
@@ -134,67 +99,84 @@ def parse_part_xml(
         )
     )
 
-    # ----------------------------
-    # Subpart records
-    # ----------------------------
+    # Case 1: subparts exist (like Part 211)
     subpart_nodes = [
-        child
-        for child in root
+        child for child in root
         if child.tag == "DIV6" and child.attrib.get("TYPE") == "SUBPART"
     ]
 
-    for subpart_node in subpart_nodes:
-        subpart_letter = subpart_node.attrib.get("N", "")
-        subpart_head = (
-            elem_text(subpart_node.find("HEAD"))
-            or f"Subpart {subpart_letter}".strip()
-        )
-
-        records.append(
-            SectionRecord(
-                section_number=subpart_head,
-                title=subpart_head,
-                level=1,
-                parent_section_number=str(part_number),
-                full_text=subpart_head,
-                version_date=version_date,
-            )
-        )
-
-        # ----------------------------
-        # Section records inside subpart
-        # ----------------------------
-        section_nodes = [
-            child
-            for child in subpart_node
-            if child.tag == "DIV8" and child.attrib.get("TYPE") == "SECTION"
-        ]
-
-        for section_node in section_nodes:
-            section_number = section_node.attrib.get("N")
-            if not section_number:
-                continue
-
-            section_head = elem_text(section_node.find("HEAD"))
-            section_title = (
-                strip_section_prefix(section_head, section_number)
-                if section_head
-                else None
-            )
-            section_full_text = build_section_full_text(section_node, section_head)
-
-            if not section_full_text:
-                continue
+    if subpart_nodes:
+        for subpart_node in subpart_nodes:
+            subpart_head = elem_text(subpart_node.find("HEAD")) or f"Subpart {subpart_node.attrib.get('N', '')}".strip()
 
             records.append(
                 SectionRecord(
-                    section_number=section_number,
-                    title=section_title,
-                    level=2,
-                    parent_section_number=subpart_head,
-                    full_text=section_full_text,
+                    section_number=subpart_head,
+                    title=subpart_head,
+                    level=1,
+                    parent_section_number=str(part_number),
+                    full_text=subpart_head,
                     version_date=version_date,
                 )
             )
+
+            section_nodes = [
+                child for child in subpart_node
+                if child.tag == "DIV8" and child.attrib.get("TYPE") == "SECTION"
+            ]
+
+            for section_node in section_nodes:
+                section_number = section_node.attrib.get("N")
+                if not section_number:
+                    continue
+
+                section_head = elem_text(section_node.find("HEAD"))
+                section_title = strip_section_prefix(section_head, section_number) if section_head else None
+                section_full_text = build_section_full_text(section_node, section_head)
+
+                if not section_full_text:
+                    continue
+
+                records.append(
+                    SectionRecord(
+                        section_number=section_number,
+                        title=section_title,
+                        level=2,
+                        parent_section_number=subpart_head,
+                        full_text=section_full_text,
+                        version_date=version_date,
+                    )
+                )
+
+        return records
+
+    # Case 2: direct sections under part (like Part 210)
+    direct_section_nodes = [
+        child for child in root
+        if child.tag == "DIV8" and child.attrib.get("TYPE") == "SECTION"
+    ]
+
+    for section_node in direct_section_nodes:
+        section_number = section_node.attrib.get("N")
+        if not section_number:
+            continue
+
+        section_head = elem_text(section_node.find("HEAD"))
+        section_title = strip_section_prefix(section_head, section_number) if section_head else None
+        section_full_text = build_section_full_text(section_node, section_head)
+
+        if not section_full_text:
+            continue
+
+        records.append(
+            SectionRecord(
+                section_number=section_number,
+                title=section_title,
+                level=2,
+                parent_section_number=str(part_number),
+                full_text=section_full_text,
+                version_date=version_date,
+            )
+        )
 
     return records
