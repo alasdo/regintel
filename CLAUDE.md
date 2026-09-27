@@ -4,7 +4,7 @@ rigor: standard   <!-- or: regulated (see global CLAUDE.md) -->
 
 ## Overview
 
-RegIntel v2 is a free, public tool over FDA (CDER) warning letters to drug manufacturers, FY2019 onward. A weekly GitHub Action collects new letters. A local 7–8B model (Ollama) run on the owner's PC classifies each letter into 13 GMP failure categories, with a verbatim quote per label. A FastAPI + HTML/CSS/JS site on a free Hugging Face Docker Space serves hybrid search and trends; FDA Data Dashboard inspection citations provide a second, structured trend source. Scope, taxonomy and the evaluation protocol are in `docs/vision.md`.
+RegIntel v2 is a free, public tool over FDA warning letters to drug manufacturers on FDA's live warning-letter listing (posted from January 2021; FY2021 is partial). A weekly GitHub Action collects new letters. A local 7–8B model (Ollama) run on the owner's PC classifies each letter into 13 GMP failure categories, with a verbatim quote per label. A FastAPI + HTML/CSS/JS site on a free Hugging Face Docker Space serves hybrid search and trends; FDA Data Dashboard inspection citations provide a second, structured trend source. Scope, taxonomy and the evaluation protocol are in `docs/vision.md`.
 
 ## Commands
 
@@ -35,7 +35,7 @@ RegIntel v2 is a free, public tool over FDA (CDER) warning letters to drug manuf
 
 ## Domain rules
 
-- In scope: CDER warning letters to drug manufacturers (CGMP finished dose, API/ICH Q7, compounding 503A/503B). Unapproved-drug and misbranding letters are ingested, tagged by letter type and searchable, but not classified. Form 483 documents are out of scope.
+- In scope: drug warning letters selected by subject line via `regintel.letter_type` (CGMP finished dose, API/ICH Q7, compounding 503A/503B, and finished-pharmaceutical unapproved/misbranding letters), whichever FDA office issued them; the issuing office is kept as metadata, never used as a filter. Letters posted before January 2021 are not on the live listing and are not collected. Unapproved-drug and misbranding letters are ingested, tagged by letter type and searchable, but not classified. Form 483 documents are out of scope.
 - Letter type is set deterministically from the letter's subject line, not by the model.
 - Labels are letter-level and multi-label. Every label needs a quote that is a verbatim span of the letter (after whitespace normalisation); a label whose quote fails is dropped and never shown.
 - Category boundary rules (e.g. OOS split between lab controls and investigations; data integrity vs documentation) live in `docs/labelling-guide.md`, not in decision records.
