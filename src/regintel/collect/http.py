@@ -14,6 +14,7 @@ import httpx
 log = logging.getLogger(__name__)
 
 RETRY_STATUSES = frozenset({429, 500, 502, 503, 504})
+MAX_REDIRECTS = 5
 
 
 @dataclass(frozen=True)
@@ -64,13 +65,18 @@ class PoliteClient:
         self._sleep = sleep
         self._now = now
         self._last_start: float | None = None
-        hooks = {"request": [on_request]} if on_request else {}
+        # The wait runs as a request hook so that every request, including each
+        # redirect hop, is spaced by min_interval_s.
+        hooks: list[Callable[[httpx.Request], None]] = [self._wait_turn]
+        if on_request:
+            hooks.append(on_request)
         self._http = httpx.Client(
             headers={"User-Agent": user_agent},
             timeout=policy.timeout_s,
             follow_redirects=True,
+            max_redirects=MAX_REDIRECTS,
             transport=transport,
-            event_hooks=hooks,
+            event_hooks={"request": hooks},
         )
 
     def now(self) -> datetime:
@@ -80,7 +86,7 @@ class PoliteClient:
     def close(self) -> None:
         self._http.close()
 
-    def _wait_turn(self) -> None:
+    def _wait_turn(self, request: httpx.Request | None = None) -> None:
         if self._last_start is not None:
             wait = self._last_start + self.policy.min_interval_s - self._clock()
             if wait > 0:
@@ -105,11 +111,12 @@ class PoliteClient:
     def get(self, url: str, params: Mapping[str, str | int] | None = None) -> FetchResult:
         last_error = ""
         for attempt in range(1, self.policy.max_attempts + 1):
-            self._wait_turn()
             response: httpx.Response | None = None
             try:
                 response = self._http.get(url, params=params)
-            except (httpx.TimeoutException, httpx.TransportError) as exc:
+            except httpx.TooManyRedirects as exc:
+                raise FetchFailed(f"redirect loop from {url}: {exc}") from exc
+            except httpx.RequestError as exc:
                 last_error = f"{type(exc).__name__}: {exc}"
             else:
                 status = response.status_code

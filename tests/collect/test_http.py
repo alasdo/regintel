@@ -129,3 +129,34 @@ def test_sends_honest_user_agent_and_params() -> None:
     request = route.calls.last.request
     assert request.headers["User-Agent"] == "regintel-test"
     assert request.url.params["length"] == "500"
+
+
+@respx.mock
+def test_interval_holds_even_with_zero_retry_after() -> None:
+    """Review #7: the wait, not the backoff, must keep retries 30 s apart."""
+    ft = FakeTime()
+    respx.get(URL).mock(
+        side_effect=[httpx.Response(429, headers={"Retry-After": "0"}), httpx.Response(200)]
+    )
+    make_client(ft).get(URL)
+    assert ft.starts[1] - ft.starts[0] >= 30.0
+
+
+@respx.mock
+def test_redirect_hops_are_spaced() -> None:
+    """Review #6: each redirect hop is a request to fda.gov and waits its turn too."""
+    ft = FakeTime()
+    respx.get(URL).mock(return_value=httpx.Response(301, headers={"Location": URL + "-moved"}))
+    respx.get(URL + "-moved").mock(return_value=httpx.Response(200, text="ok"))
+    result = make_client(ft).get(URL)
+    assert result.final_url == URL + "-moved"
+    assert len(ft.starts) == 2
+    assert ft.starts[1] - ft.starts[0] >= 30.0
+
+
+@respx.mock
+def test_redirect_loop_fails_cleanly() -> None:
+    ft = FakeTime()
+    respx.get(URL).mock(return_value=httpx.Response(302, headers={"Location": URL}))
+    with pytest.raises(FetchFailed):
+        make_client(ft).get(URL)
