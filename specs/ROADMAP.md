@@ -27,11 +27,11 @@ Source: `docs/vision.md` and `docs/decisions/0001-architecture.md`. Each slice b
 
 ## Day 1: Collector and parser
 
-**Demo:** `regintel collect` pulls the FY2019→ CDER listing and all letter HTML into the HF Dataset. `regintel parse <letter_id>` prints the metadata and numbered observations for a 2019 letter and a 2025 letter.
+**Demo:** `regintel collect` pulls the live-listing (2021→) drug letters and their HTML into the HF Dataset. `regintel parse <letter_id>` prints the metadata and numbered observations for a 2021 letter and a 2025 letter.
 
 **Exit criteria**
 - [ ] `raw/manifest.jsonl` on the Dataset has one line per letter, with `sha256`, URL and `retrieved_at`. A second run adds 0 lines.
-- [ ] Parser golden tests pass on ≥ 10 real fixtures (at least one per FY 2019–2026, at least one per letter type).
+- [ ] Parser golden tests pass on ≥ 10 real fixtures (at least one per FY 2021–2026, at least one per letter type).
 - [ ] The parse report over the full corpus shows `unknown` letter types = 0 (or each one is listed and fixed) and states the fallback-segmentation rate.
 - [ ] Sample (150), dev/test split and the relabel list (20, test only) are committed with hashes, drawn with a fixed seed and stratified FY × type.
 - [ ] Owner deliverable: `docs/labelling-guide.md` (including the label-scope rule: cited violations only, remediation sections excluded) and `reference/cfr_map.csv` are committed together, before any model output exists.
@@ -41,7 +41,7 @@ Source: `docs/vision.md` and `docs/decisions/0001-architecture.md`. Each slice b
 1. Listing scraper and polite fetcher (rate limit, retry, cache)
 2. Manifest and HF Dataset store
 3. Quote normalisation, canonical text, observation segmentation and remediation tagging
-4. Letter metadata and subject-line letter type
+4. Letter metadata and subject-line letter type (the rule table already exists as `regintel.letter_type`, from spec 0001)
 5. Stratified sample and frozen split files
 6. Bot-block probe Action (manual dispatch)
 

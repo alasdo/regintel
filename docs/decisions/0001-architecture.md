@@ -13,7 +13,7 @@
 
 | Place | Does | Never does |
 |---|---|---|
-| GitHub Actions (weekly cron plus manual dispatch) | Fetches the FDA listing, new or changed letter HTML and the Data Dashboard citation export. Appends to `manifest.jsonl` (`letter_id`, URL, `retrieved_at`, `sha256`, listing fields including close-out). Pushes `raw/` to the HF Dataset. | Parse, call a model, touch derived data |
+| GitHub Actions (weekly cron plus manual dispatch) | Fetches the FDA listing, keeps rows whose subject matches the `regintel.letter_type` rule table, then fetches new or reposted letter HTML for those rows only, plus the Data Dashboard citation export. Appends to `manifest.jsonl` (`letter_id`, URL, `retrieved_at`, `sha256`, listing fields including close-out). Pushes `raw/` to the HF Dataset. | Parse, call a model, touch derived data |
 | Owner's PC (RTX 4060) | Parse → baseline → classify (Ollama) → embed → build index → export bundle. Pushes `derived/` and `bundle/`. Runs the labelling tool and the evaluation. | Serve the public site |
 | HF Docker Space (free CPU) | Pulls `bundle/<id>` at the pinned `BUNDLE_REVISION` at startup. Serves the FastAPI API and the static HTML/CSS/JS. Embeds the query at request time with a model baked into the image. | Classify, parse, write data |
 
@@ -53,6 +53,9 @@ flowchart LR
 Dataset layout (append-only; content-addressed where possible):
 - `raw/letters/<letter_id>/<sha256>.html`
 - `raw/manifest.jsonl`
+- `raw/skipped.jsonl` (in-scope letters whose page returned 404)
+- `raw/listing/<timestamp>-<sha8>.jsonl.gz` (full listing snapshot, written only when it changes; records close-outs and makes scope decisions auditable)
+- `probe/<run_id>.json` (bot-block probe records)
 - `raw/dashboard/<date>.csv`
 - `derived/parsed/<parser_version>/<letter_id>.json`
 - `derived/runs/<run_id>/{run.json,predictions.jsonl}`
@@ -82,7 +85,7 @@ Observations are found by year-tolerant rules (numbered paragraphs inside the vi
 Metadata:
 - firm, letter date, and FEI (regex, nullable)
 - `facility_description`: the product and facility description from the opening paragraph, truncated to a fixed length
-- subject line, with `letter_type` taken from an ordered rule table. An unmatched subject gives `unknown` and fails loudly in the parse report, rather than a guess.
+- subject line, with `letter_type` taken from the ordered rule table in `regintel.letter_type`, shared with the collector (spec 0001). An unmatched subject gives `unknown` and fails loudly in the parse report, rather than a guess.
 - close-out status and date, from the listing
 
 `parser_version` is part of every derived path.
@@ -152,7 +155,7 @@ The no-Streamlit convention applies to the public site. This tool is local only.
 | Package (`src/regintel/`) | Contents | Tests |
 |---|---|---|
 | `collect/` | listing, fetch (rate-limited, retried, cached), manifest, dashboard | Recorded HTTP responses (`respx`); manifest append-only and unique-hash properties |
-| `parse/` | `text.normalise`, html→canonical text, observations, remediation tagging, metadata, `letter_type` rules | **Real letter HTML fixtures**, at least one per FY 2019–2026 and per letter type, each with golden JSON. Properties: spans slice exactly, are ordered and non-overlapping. A table test for subject → type. Normalisation cases (curly quotes, en/em dashes, NBSP, ligatures). |
+| `parse/` | `text.normalise`, html→canonical text, observations, remediation tagging, metadata, `letter_type` rules | **Real letter HTML fixtures**, at least one per FY 2021–2026 and per letter type, each with golden JSON. Properties: spans slice exactly, are ordered and non-overlapping. A table test for subject → type. Normalisation cases (curly quotes, en/em dashes, NBSP, ligatures). |
 | `baseline/` | citation extraction, frozen mapping | Fixture texts → expected categories; a test that pins the mapping hash |
 | `classify/` | prompt, Ollama client, quote verify, run record | A fake client with canned JSON; quote-verify edge cases; `config_hash` determinism; guard refusals |
 | `label/` | Streamlit app, label store | Store round-trip; quote refusal; the import-boundary test; re-label blindness |
