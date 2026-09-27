@@ -1,7 +1,7 @@
 # RegIntel labelling guide
 
 Version 1.0 · 2026-09-27 · Owner: Anas Lasri Doukkali
-Frozen together with `reference/cfr_map.csv` (same commit). The labelling tool records this file's sha256 with every label (`guide_sha`). Any change after labelling starts goes in the [changelog](#changelog).
+Status: **draft for the pilot**. Frozen as v1.1, together with `reference/cfr_map.csv`, after the pilot ([section 7](#7-pilot-and-freeze)). The labelling tool records this file's sha256 with every label (`guide_sha`). Every change goes in the [changelog](#changelog).
 
 ---
 
@@ -95,13 +95,13 @@ Each entry has the definition (the line to read at the screen), then includes an
 
 **Records or data cannot be trusted to be complete, original and accurate (ALCOA+). It is about trustworthiness only.**
 
-- **Includes:** audit trails disabled, not reviewed, or showing deletions. Shared or generic logins; analysts with administrator rights who can delete or alter data. Deleted, overwritten or unreported results; trial, "test" or "prep" injections; orphan data. Backdating; recording before or after the fact; copied or fabricated entries; results transcribed from scrap paper that was then discarded. Uncontrolled blank or loose forms. Data loss from missing backup (211.68(b)). Discrepancies between records and what investigators saw that suggest falsification.
+- **Includes:** audit trails disabled, not reviewed, or showing deletions. Shared or generic logins; analysts with administrator rights who can delete or alter data. Deleted, overwritten or unreported results; trial, "test" or "prep" injections; orphan data. Backdating; recording before or after the fact; copied or fabricated entries; results transcribed from scrap paper that was then discarded. Uncontrolled blank or loose forms. Data loss from missing backup (211.68(b)). Shared, lent or misused electronic signatures and passwords. Discrepancies between records and what investigators saw that suggest falsification.
 - **Excludes:** records that are merely missing or incomplete (→ 11). Computerised-system validation or qualification without a trust problem (→ 6). FDA's data-integrity remediation request section (no label).
 - **Boundaries:**
   - vs **11 (vision rule):** ask "could these records be false, altered or selectively kept?" Yes → 2. "They are just absent or lack required entries" → 11. Data that was *generated and then not retained or deleted* → 2. A required field that was *never recorded* → 11.
   - vs **6:** software or instrument not validated or qualified → 6. Access control, audit trail, backup, or who can change data → 2 (owner decision, v1.0).
   - vs **3:** retesting until a pass is obtained → 3 (OOS invalidation). Add 2 only if failing results were hidden, deleted, run as trial injections or not reported.
-- **Typical citations:** 211.68(b); 211.194(a); Q7 5.4, 6.6.
+- **Typical citations:** 211.68(b); 211.194(a); 21 CFR Part 11 (e.g. 11.10, 11.70, 11.300); Q7 5.4, 6.6.
 - **Examples:**
   - ✔ *Analysts had administrator privileges on the chromatography software, and the audit trail function was disabled.* → 2
   - ✔ *Batch record entries for several steps were signed as completed on dates before the steps were performed.* → 2
@@ -305,7 +305,7 @@ Each entry has the definition (the line to read at the screen), then includes an
 
 ## 5. Label record
 
-The tool saves `{letter_id, categories, quotes{cat: str}, labelled_at, guide_sha}` (`docs/decisions/0001-architecture.md`, *Labelling tool*), plus the optional per-category `unsure` flag defined in [section 2](#rule-for-doubt). `guide_sha` is the sha256 of this file as labelled.
+The tool saves `{letter_id, categories, quotes{cat: str}, labelled_at, guide_sha}` (`docs/decisions/0001-architecture.md`, *Labelling tool*). `guide_sha` is the sha256 of this file as labelled. The optional per-category `unsure` flag from [section 2](#rule-for-doubt) is not in that record yet; see [For the labelling-tool spec](#for-the-labelling-tool-spec).
 
 ---
 
@@ -313,7 +313,7 @@ The tool saves `{letter_id, categories, quotes{cat: str}, labelled_at, guide_sha
 
 The deterministic baseline extracts 21 CFR, FD&C Act and ICH Q7 references from the letter and maps them through this table. Gold labelling never uses it.
 
-**Format.** Columns `citation, category, rationale`. One row per (citation, category). An empty `category` means *recognised, maps to no category* (generic or non-CGMP provisions). Citation forms: `21 CFR 211.194(a)`, `FD&C 501(a)(2)(B)`, and `ICH Q7 <n>`, where `<n>` is a chapter (`11`), a section (`11.1`) or a paragraph (`11.15`).
+**Format.** Columns `citation, category, rationale`. One row per (citation, category). An empty `category` means *recognised, maps to no category* (generic or non-CGMP provisions). Citation forms: `21 CFR 211.194(a)`, `21 CFR 11.10` (a part-level reference such as "21 CFR Part 11" becomes `21 CFR 11`), `FD&C 501(a)(2)(B)`, and `ICH Q7 <n>`, where `<n>` is a chapter (`11`), a section (`11.1`) or a paragraph (`11.15`).
 
 **Lookup rule: most specific row wins.**
 
@@ -338,20 +338,35 @@ The deterministic baseline extracts 21 CFR, FD&C Act and ICH Q7 references from 
 | 211.194(a) → 2 and 211.194 → 3 | 211.194(a) and bare 211.194 → 2, 3; (b)(c) → 3; (d) → 6; (e) → 10 | paragraph-level subjects |
 | (not listed) | 211.42(d), Q7 4.4 → 6, 8; Q7 8.5 → 6; 211.176 → 6 | cross-contamination and containment |
 | (not listed) | 211.160(b)(4) → 6 | calibration is category 6, including lab instruments |
+| (not listed) | 21 CFR Part 11 and each of its 10 sections → 2 | owner decision: Part 11 governs the trustworthiness of electronic records and signatures. Known imprecision: 11.10(a) (system validation) also maps to 2, while gold labels functional validation without a trust problem as 6 |
 
 **Verification sources.**
 
 - **ICH Q7:** every Q7 section number and heading was checked against the official text, *ICH Q7 Good Manufacturing Practice Guide for Active Pharmaceutical Ingredients, Current Step 4 version dated 10 November 2000*, downloaded 2026-09-27 from `https://database.ich.org/sites/default/files/Q7%20Guideline.pdf` (sha256 `f28aff02d31b7edf6ed3026971a2283019ad51393165ffbc5efb5ae7208e1f1e`, 49 pages). Each Q7 row's rationale gives the heading and the PDF page where it appears.
-- **21 CFR 210/211:** section titles and paragraph designations were checked against eCFR, Title 21 as up to date on 2026-09-24 (`https://www.ecfr.gov/api/versioner/v1/`).
+- **21 CFR 11/210/211:** section titles and paragraph designations were checked against eCFR, Title 21 as up to date on 2026-09-24 (`https://www.ecfr.gov/api/versioner/v1/`).
 - **FD&C Act rows:** the provisions that recur in CDER drug warning letters. All of them map to no category except 501(a)(2)(A).
 
 ---
 
-## 7. Change control
+## 7. Pilot and freeze
+
+Before any sample letter is labelled, the guide is tried on real letters and then frozen.
+
+1. **Pick 5 pilot letters from outside the 150-letter sample.** Do this after the sample and split files are drawn, so "outside" can be checked against them. Cover different letter types where possible (at least one API and one compounding letter) and different fiscal years. Record the pilot letter IDs in a file under `evaluation/splits/`.
+2. **Label them with the labelling tool under this guide.** Follow section 2 exactly, including quotes and the unsure flag. Time each letter; this is the first data for the 6-minute pace check. Don't look at model or baseline output for these letters first.
+3. **Fix what was unclear.** Edit the guide, and the map if a mapping problem shows up. Every change gets a changelog row, even though no sample letter has been labelled yet.
+4. **Freeze as v1.1.** Set the header to `Version 1.1` and status *frozen*. Commit the guide and `reference/cfr_map.csv` together, then tag that commit `labelling-guide-v1.1` (annotated tag). The tag message records the sha256 of both files; the freeze changelog row records the map's sha256. The freeze must land before any model output exists (`docs/vision.md`, evaluation protocol step 1).
+5. **Pilot letters are excluded from evaluation.** Their labels are kept apart from sample gold and never enter gold, splits, metrics, κ or the search questions. They need no re-check after changes.
+
+Sample labelling starts only at the v1.1 tag, and every sample label must carry the v1.1 `guide_sha` or a later changelogged version.
+
+---
+
+## 8. Change control
 
 - This guide and `reference/cfr_map.csv` are versioned in git and frozen together. The labelling tool records this file's sha256 with every label, so every gold label traces to the exact guide text it was made under.
-- **Before labelling starts:** edits are normal commits.
-- **After labelling starts:** every change, however small, needs:
+- **Before the v1.1 freeze:** edits are normal commits, each logged in the changelog (see section 7).
+- **After the v1.1 freeze:** every change, however small, needs:
   1. a changelog entry below (date, version, what changed, why, categories affected);
   2. a version bump (minor for clarifications, major for a changed boundary);
   3. a re-check of every letter already labelled, **for the affected categories only**, recorded as new label lines (never edits to earlier lines) under the new `guide_sha`.
@@ -362,4 +377,15 @@ The deterministic baseline extracts 21 CFR, FD&C Act and ICH Q7 references from 
 
 | Date | Version | Change | Categories affected | Re-check done |
 |---|---|---|---|---|
-| 2026-09-27 | 1.0 | Initial version, frozen with `reference/cfr_map.csv` v1. Owner decisions: subject rule for procedures (11); computerised-system validation → 6 unless trust (2/6); classified-area conditions → 7 (7/8); repeat-observation summaries → no label (1). | all | n/a (before labelling) |
+| 2026-09-27 | 1.0 | Initial version, paired with `reference/cfr_map.csv` v1. Owner decisions: subject rule for procedures (11); computerised-system validation → 6 unless trust (2/6); classified-area conditions → 7 (7/8); repeat-observation summaries → no label (1). | all | n/a (before labelling) |
+| 2026-09-27 | 1.0 | Before labelling: added 21 CFR Part 11 to the map (part level plus sections 11.1–11.300 → 2; 11 rows) and to category 2's typical citations; added section 7 *Pilot and freeze*; added the labelling-tool spec note. | 2 (baseline only) | n/a (before labelling) |
+
+---
+
+## For the labelling-tool spec
+
+These are requirements this guide places on the labelling tool. They aren't in `docs/decisions/0001-architecture.md` yet; that record is owned by the collector branch.
+
+- **`unsure` field.** Add an optional per-category flag to each saved record, e.g. `unsure: [<category>, …]`, where each entry is a category number 1–13, ticked or not. It is saved with the label, never changes `categories`, and is ignored by scoring. It is read afterwards alongside the self-consistency κ to find ill-defined boundaries.
+- **Pilot flag.** Pilot labels (section 7) must be distinguishable from sample gold, either in a separate file or marked `pilot: true`, so they can never enter evaluation.
+- **Guide version check.** The tool should refuse to label a sample letter unless the current guide sha256 matches the v1.1 freeze or a later changelogged version.

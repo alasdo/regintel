@@ -1,4 +1,15 @@
 citation,category,rationale
+21 CFR 11,2,Part 11 electronic records and signatures (cited as 'Part 11'): trustworthiness of electronic records
+21 CFR 11.1,2,Part 11 scope: electronic records trustworthy and equivalent to paper
+21 CFR 11.2,2,Part 11 implementation: electronic records in place of paper
+21 CFR 11.3,2,Part 11 definitions; cited only in electronic-record context
+21 CFR 11.10,2,"Controls for closed systems: validation for accuracy, audit trails (e), access limits (d), authority checks (g)"
+21 CFR 11.30,2,Controls for open systems
+21 CFR 11.50,2,Signature manifestations
+21 CFR 11.70,2,"Signature/record linking: signatures cannot be excised, copied or transferred to falsify records"
+21 CFR 11.100,2,"Electronic signatures: general requirements, unique to one individual"
+21 CFR 11.200,2,Electronic signature components and controls
+21 CFR 11.300,2,Controls for identification codes and passwords
 21 CFR 210,,Part-level reference to the CGMP regulations; generic
 21 CFR 210.1,,Status of CGMP regulations; generic
 21 CFR 210.2,,Applicability of CGMP regulations; generic
