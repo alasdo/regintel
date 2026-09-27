@@ -11,7 +11,7 @@ from collections.abc import Callable, Sequence
 
 from regintel.collect.http import BlockedError, FetchFailed, FetchPolicy, PoliteClient
 from regintel.collect.listing import ListingSchemaError
-from regintel.config import Settings
+from regintel.config import Settings, load_dotenv
 from regintel.store.base import ConcurrentWriteError, Store
 
 log = logging.getLogger("regintel")
@@ -151,6 +151,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    loaded = load_dotenv()  # local convenience; exported variables (Action secrets) win
+    if loaded:
+        log.info("loaded %s from .env", ", ".join(sorted(loaded)))
     args = build_parser().parse_args(argv)
     code: int = args.func(args)
     return code

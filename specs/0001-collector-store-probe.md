@@ -474,11 +474,11 @@ Automated. All of these run under `make check`, offline, with fixtures in `tests
 - [ ] `tests/test_cli.py::test_min_interval_below_30_refused`: exit code 1 and nothing is fetched.
 - [ ] `make check` passes (ruff, mypy strict, pytest), with `specs/` excluded from ruff.
 
-Manual. These are observable once, need network and credentials, and are not automatable offline:
+Manual. These are observable once, need network and credentials, and are not automatable offline. Run them from the repo root with `HF_TOKEN` in `.env`: the CLI loads `.env` itself, and variables already set in the environment win, so `uv run regintel …` needs no `--env-file` or `export`. The log line `loaded HF_TOKEN from .env` confirms it was picked up.
 
-- [ ] M1: `uv run regintel store init` prints `created` and a second run prints `exists`. `https://huggingface.co/datasets/alasdo/regintel-data` is public.
+- [ ] M1: `uv run regintel store init` prints `exists alasdo/regintel-data`, because the owner created the dataset on 2026-09-27 at 14:32 UTC. It would print `created` on an account without it. Running it twice changes nothing. `https://huggingface.co/datasets/alasdo/regintel-data` is public.
 - [ ] M2 (**after merge**): `workflow_dispatch` only offers workflows that exist on the default branch, so the probe can be dispatched only once this branch is merged to `main`. Then dispatch **Probe fda.gov** from the Actions tab. The log shows the listing and letter status, bytes, sha256 and `looks_like_letter`, and `probe/<run_id>.json` appears on the Dataset. The outcome (blocked or not) is recorded in a small follow-up PR, which also sets this spec's status to `done`. If blocked, that PR adds a short fallback note under `docs/decisions/` before Day 5, as the roadmap requires.
-- [ ] M3: `uv run regintel collect --max-fetches 5` pushes 5 letters (`new_manifest_lines: 5`, `in_scope_rows` ≈ 674 or more). A second run with `--max-fetches 0` prints `new_manifest_lines: 0` and `fetched: 0`.
+- [ ] M3: `uv run regintel collect --max-fetches 5` (about 7 min at 30 s per request) pushes 5 letters (`new_manifest_lines: 5`, `in_scope_rows` ≈ 674 or more). A second run with `--max-fetches 0` prints `new_manifest_lines: 0` and `fetched: 0`.
 
 ## Implementation notes (deviations from the sketches above)
 
@@ -498,6 +498,7 @@ These are recorded here so the spec stays the contract. All came out of implemen
   - A failed commit is a `ConcurrentWriteError` whenever the head has moved, whatever the status code.
 - **Snapshot visibility:** `CollectSummary` gains `snapshot_written` and `unresolved_reposts`, and a warning is logged when a repost holds the snapshot back.
 - **Known limitation:** a letter known only from `skipped.jsonl` (a 404) has no posted date to compare, so a repost of it before any snapshot contains it is not detected. `SkipLine` may gain `posted_date` in a later schema version.
+- **`.env` loading:** `regintel` loads `./.env` at start-up (`config.load_dotenv`, no new dependency). It never overrides variables already set, so the Action's `HF_TOKEN` secret wins, and it logs only the names it set, never the values. Every test runs from a temporary directory, with the `regintel` variables cleared and real sockets refused (`tests/conftest.py`), so the owner's `.env` and credentials can never reach a test.
 - **Probe:** `regintel probe --push` exits 3 (concurrent write) or 1 (Hub/OS error) after printing the record. The workflow disables persisted checkout credentials and pins the uv version.
 
 ## Task breakdown

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping
+import re
+from collections.abc import Mapping, MutableMapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -28,3 +29,36 @@ class Settings:
             hf_token=env.get("HF_TOKEN") or None,
             cache_dir=Path(env.get("REGINTEL_CACHE_DIR") or "data/cache"),
         )
+
+
+_DOTENV_LINE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$")
+
+
+def _dotenv_value(raw: str) -> str:
+    if raw[:1] in ("'", '"'):
+        end = raw.find(raw[0], 1)
+        if end != -1:
+            return raw[1:end]
+    return re.split(r"\s+#", raw, maxsplit=1)[0].strip()
+
+
+def load_dotenv(
+    path: Path = Path(".env"), environ: MutableMapping[str, str] | None = None
+) -> list[str]:
+    """Set KEY=VALUE pairs from a .env file; variables already set always win.
+
+    Returns the names it set. Values are never logged.
+    """
+    environ = os.environ if environ is None else environ
+    if not path.is_file():
+        return []
+    loaded = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        match = _DOTENV_LINE.match(line)
+        if not match or line.lstrip().startswith("#"):
+            continue
+        key, raw = match.groups()
+        if key not in environ:
+            environ[key] = _dotenv_value(raw)
+            loaded.append(key)
+    return loaded
