@@ -1,0 +1,227 @@
+citation,category,rationale
+21 CFR 11,2,Part 11 electronic records and signatures (cited as 'Part 11'): trustworthiness of electronic records
+21 CFR 11.1,2,Part 11 scope: electronic records trustworthy and equivalent to paper
+21 CFR 11.2,2,Part 11 implementation: electronic records in place of paper
+21 CFR 11.3,2,Part 11 definitions; cited only in electronic-record context
+21 CFR 11.10,2,"Controls for closed systems: validation for accuracy, audit trails (e), access limits (d), authority checks (g)"
+21 CFR 11.30,2,Controls for open systems
+21 CFR 11.50,2,Signature manifestations
+21 CFR 11.70,2,"Signature/record linking: signatures cannot be excised, copied or transferred to falsify records"
+21 CFR 11.100,2,"Electronic signatures: general requirements, unique to one individual"
+21 CFR 11.200,2,Electronic signature components and controls
+21 CFR 11.300,2,Controls for identification codes and passwords
+21 CFR 210,,Part-level reference to the CGMP regulations; generic
+21 CFR 210.1,,Status of CGMP regulations; generic
+21 CFR 210.2,,Applicability of CGMP regulations; generic
+21 CFR 210.3,,Definitions; generic
+21 CFR 211,,Part-level reference to finished-pharmaceutical CGMP; generic
+21 CFR 211.1,,Scope; generic
+21 CFR 211.3,,Definitions; generic
+21 CFR 211.22,1,Responsibilities of quality control unit
+21 CFR 211.25,13,Personnel qualifications and training
+21 CFR 211.28,13,"Personnel responsibilities: clothing, health, hygiene (aseptic-specific practice is labelled 7; the baseline cannot tell)"
+21 CFR 211.34,13,Consultants' qualifications
+21 CFR 211.42,8,"Design and construction features; bare section maps to its dominant subject, facilities"
+21 CFR 211.42(c)(10),7,"Aseptic processing areas: surfaces, HEPA air, EM, disinfection"
+21 CFR 211.42(d),6,Separate facilities for penicillin: cross-contamination (6) via facility design (8)
+21 CFR 211.42(d),8,Separate facilities for penicillin: cross-contamination (6) via facility design (8)
+21 CFR 211.44,8,Lighting
+21 CFR 211.46,8,"Ventilation, air filtration, heating and cooling (HVAC)"
+21 CFR 211.48,8,"Plumbing, including potable water"
+21 CFR 211.50,8,Sewage and refuse
+21 CFR 211.52,8,Washing and toilet facilities
+21 CFR 211.56,8,"Sanitation of buildings, including pest control"
+21 CFR 211.58,8,Maintenance of buildings
+21 CFR 211.63,6,"Equipment design, size and location"
+21 CFR 211.65,6,Equipment construction
+21 CFR 211.67,6,Equipment cleaning and maintenance
+21 CFR 211.68,2,"Automatic, mechanical and electronic equipment; bare section covers both data controls (b) and equipment (a)"
+21 CFR 211.68,6,"Automatic, mechanical and electronic equipment; bare section covers both data controls (b) and equipment (a)"
+21 CFR 211.68(a),6,"Calibration, inspection, checking and validation of automatic equipment and computers"
+21 CFR 211.68(b),2,"Controls over computer systems: authorised changes, input/output checks, backup"
+21 CFR 211.68(c),5,Automated equipment used in place of a second-person check in production operations
+21 CFR 211.72,6,Filters for injectable production must not release fibres (equipment)
+21 CFR 211.80,9,"General requirements for components, containers and closures"
+21 CFR 211.82,9,"Receipt and storage of untested components, containers and closures"
+21 CFR 211.84,9,"Testing and approval or rejection of components, containers and closures, incl. identity and CoA reliance"
+21 CFR 211.86,9,"Use of approved components, containers and closures"
+21 CFR 211.87,9,"Retesting of approved components, containers and closures"
+21 CFR 211.89,9,"Rejected components, containers and closures"
+21 CFR 211.94,9,Drug product containers and closures
+21 CFR 211.100,4,Written procedures; deviations: bare section covers establishing procedures (a) and following them and justifying deviations (b)
+21 CFR 211.100,5,Written procedures; deviations: bare section covers establishing procedures (a) and following them and justifying deviations (b)
+21 CFR 211.100(a),5,"Written production and process control procedures, incl. review of changes"
+21 CFR 211.100(b),4,Deviations from procedures recorded and justified
+21 CFR 211.100(b),5,Production procedures followed during execution
+21 CFR 211.101,5,Charge-in of components
+21 CFR 211.103,5,Calculation of yield
+21 CFR 211.105,5,Identification of equipment and lines during production
+21 CFR 211.110,5,In-process sampling and testing
+21 CFR 211.111,5,Time limitations on production
+21 CFR 211.113,5,Control of microbiological contamination; bare section covers non-sterile (a) and sterile (b)
+21 CFR 211.113,7,Control of microbiological contamination; bare section covers non-sterile (a) and sterile (b)
+21 CFR 211.113(a),5,Procedures to prevent objectionable microorganisms in non-sterile products
+21 CFR 211.113(b),7,"Procedures to prevent contamination of sterile products, incl. validation of aseptic and sterilisation processes"
+21 CFR 211.115,5,Reprocessing
+21 CFR 211.122,12,Labelling and packaging materials examination and usage
+21 CFR 211.125,12,Labelling issuance and reconciliation
+21 CFR 211.130,12,"Packaging and labelling operations, incl. line clearance"
+21 CFR 211.132,12,Tamper-evident packaging for OTC products
+21 CFR 211.134,12,Drug product inspection of packaged and labelled product
+21 CFR 211.137,10,Expiration dating
+21 CFR 211.142,9,Warehousing procedures: quarantine and storage conditions (material handling)
+21 CFR 211.150,,Distribution procedures; no taxonomy category covers distribution logistics
+21 CFR 211.160,3,"Laboratory controls: scientifically sound specifications, standards, sampling plans, test procedures"
+21 CFR 211.160(b)(4),6,"Calibration of instruments and apparatus (calibration is category 6, including lab instruments)"
+21 CFR 211.165,3,"Testing and release for distribution, incl. method validation (e)"
+21 CFR 211.166,10,Stability testing programme
+21 CFR 211.167,3,Special testing requirements; bare section covers sterility/pyrogen (a) and ophthalmic/controlled-release testing (b)(c)
+21 CFR 211.167,7,Special testing requirements; bare section covers sterility/pyrogen (a) and ophthalmic/controlled-release testing (b)(c)
+21 CFR 211.167(a),7,Sterility and pyrogen/endotoxin testing of products purporting to be sterile
+21 CFR 211.167(b),3,Ophthalmic ointment testing for foreign particles and harsh or abrasive substances
+21 CFR 211.167(c),3,Controlled-release dosage form release-rate testing
+21 CFR 211.170,3,Reserve samples
+21 CFR 211.173,3,Laboratory animals
+21 CFR 211.176,6,Penicillin contamination: cross-contamination risk
+21 CFR 211.180,1,Records general requirements; bare section covers retention (a)-(d) and APR/management notification (e)(f)
+21 CFR 211.180,11,Records general requirements; bare section covers retention (a)-(d) and APR/management notification (e)(f)
+21 CFR 211.180(a),11,Record retention period
+21 CFR 211.180(b),11,"Retention of component, container, closure and labelling records"
+21 CFR 211.180(c),11,Records readily available for inspection
+21 CFR 211.180(d),11,Original records or true copies
+21 CFR 211.180(e),1,Annual product review
+21 CFR 211.180(f),1,"Responsible officials notified of investigations, recalls and inspection observations"
+21 CFR 211.182,6,Equipment cleaning and use log: cleaning and maintenance (6)
+21 CFR 211.182,11,Equipment cleaning and use log: record completeness (11)
+21 CFR 211.184,11,"Component, container, closure and labelling records"
+21 CFR 211.186,11,Master production and control records
+21 CFR 211.188,11,Batch production and control records
+21 CFR 211.192,4,Production record review: unexplained discrepancies and failures thoroughly investigated and extended to other batches
+21 CFR 211.194,2,"Laboratory records; bare section maps to its dominant paragraph (a), complete data"
+21 CFR 211.194,3,"Laboratory records; bare section maps to its dominant paragraph (a), complete data"
+21 CFR 211.194(a),2,Laboratory records must include complete data from all tests (trustworthiness)
+21 CFR 211.194(a),3,"Laboratory records of methods, results and comparison with specifications (lab controls)"
+21 CFR 211.194(b),3,Records of modification of established test methods
+21 CFR 211.194(c),3,"Records of reference standards, reagents and standard solutions"
+21 CFR 211.194(d),6,Records of calibration of laboratory instruments
+21 CFR 211.194(e),10,Records of stability testing
+21 CFR 211.196,11,Distribution records
+21 CFR 211.198,4,Complaint files and complaint investigation
+21 CFR 211.204,4,Returned drug products: investigation and disposition
+21 CFR 211.208,4,Drug product salvaging after improper storage: evaluation and disposition
+FD&C 501(a)(2)(A),7,"Insanitary conditions; sterile-operation conditions (7). The baseline cannot tell which applies, so it maps to both"
+FD&C 501(a)(2)(A),8,"Insanitary conditions; facility conditions (8). The baseline cannot tell which applies, so it maps to both"
+FD&C 501(a)(2)(B),,Generic CGMP adulteration; names no failure mode
+FD&C 501(b),,"Strength, quality or purity differs from compendial standard; a product outcome, not a CGMP system failure"
+FD&C 501(j),,"Delaying, denying, limiting or refusing inspection; not a taxonomy category"
+FD&C 502(a),,"Misbranding: false or misleading labelling; letter type, not classified"
+FD&C 502(f)(1),,"Misbranding: inadequate directions for use; letter type, not classified"
+FD&C 505(a),,"Unapproved new drug; letter type, not classified"
+FD&C 503A,,Compounding exemption conditions; not a CGMP failure mode
+FD&C 503B,,Outsourcing facility exemption conditions; not a CGMP failure mode
+FD&C 301(a),,Prohibited act: introduction into interstate commerce; generic
+FD&C 301(d),,Prohibited act: introduction of an unapproved new drug; generic
+FD&C 301(k),,Prohibited act: adulteration or misbranding while held for sale; generic
+FD&C 704(a)(4),,Records requested in lieu of or before inspection; the request itself is not a failure mode
+FD&C 801(a)(3),,Import refusal authority; generic
+ICH Q7 1,,"Q7 1 'Introduction', PDF p7: Introduction and scope; generic"
+ICH Q7 2,1,"Q7 2 'Quality Management', PDF p10: bare chapter maps to its dominant subject, quality unit"
+ICH Q7 2.1,1,"Q7 2.1 'Principles', PDF p10: quality system and quality unit principles, release by QU"
+ICH Q7 2.16,4,"Q7 paragraph 2.16, PDF p10: deviations documented and explained; critical deviations investigated"
+ICH Q7 2.2,1,"Q7 2.2 'Responsibilities of the Quality Unit(s)', PDF p10: QU responsibilities"
+ICH Q7 2.3,5,"Q7 2.3 'Responsibility for Production Activities', PDF p11: production unit responsibilities: follow instructions, validation, changes"
+ICH Q7 2.4,1,"Q7 2.4 'Internal Audits (Self Inspection)', PDF p11: internal audits"
+ICH Q7 2.5,1,"Q7 2.5 'Product Quality Review', PDF p12: product quality review (APR equivalent)"
+ICH Q7 3,13,"Q7 3 'Personnel', PDF p12: personnel"
+ICH Q7 3.1,13,"Q7 3.1 'Personnel Qualifications', PDF p12: personnel qualifications and training"
+ICH Q7 3.2,13,"Q7 3.2 'Personnel Hygiene', PDF p12: personnel hygiene (aseptic-specific practice is labelled 7)"
+ICH Q7 3.3,13,"Q7 3.3 'Consultants', PDF p13: consultants"
+ICH Q7 4,8,"Q7 4 'Buildings And Facilities', PDF p13: buildings and facilities"
+ICH Q7 4.1,8,"Q7 4.1 'Design and Construction', PDF p13: facility design and construction"
+ICH Q7 4.2,8,"Q7 4.2 'Utilities', PDF p14: utilities incl. HVAC, compressed air"
+ICH Q7 4.3,8,"Q7 4.3 'Water', PDF p14: water"
+ICH Q7 4.4,6,"Q7 4.4 'Containment', PDF p14: containment: dedicated facilities to prevent cross-contamination (6)"
+ICH Q7 4.4,8,"Q7 4.4 'Containment', PDF p14: containment: via facility design (8)"
+ICH Q7 4.5,8,"Q7 4.5 'Lighting', PDF p15: lighting"
+ICH Q7 4.6,8,"Q7 4.6 'Sewage and Refuse', PDF p15: sewage and refuse"
+ICH Q7 4.7,8,"Q7 4.7 'Sanitation and Maintenance', PDF p15: sanitation and maintenance of buildings, pest control"
+ICH Q7 5,6,"Q7 5 'Process Equipment', PDF p15: process equipment"
+ICH Q7 5.1,6,"Q7 5.1 'Design and Construction', PDF p15: equipment design and construction"
+ICH Q7 5.2,6,"Q7 5.2 'Equipment Maintenance and Cleaning', PDF p16: equipment maintenance and cleaning"
+ICH Q7 5.3,6,"Q7 5.3 'Calibration', PDF p17: calibration"
+ICH Q7 5.4,2,"Q7 5.4 'Computerized Systems', PDF p17: computerised systems: access control, audit trail, backup (5.43-5.49)"
+ICH Q7 5.4,6,"Q7 5.4 'Computerized Systems', PDF p17: computerised systems: validation and qualification (5.40-5.42)"
+ICH Q7 5.40,6,"Q7 paragraph 5.40, PDF p17: computerised system validation"
+ICH Q7 5.41,6,"Q7 paragraph 5.41, PDF p17: computerised system installation and operational qualification"
+ICH Q7 6,11,"Q7 6 'Documentation And Records', PDF p18: documentation and records"
+ICH Q7 6.1,11,"Q7 6.1 'Documentation System and Specifications', PDF p18: documentation system and specifications"
+ICH Q7 6.2,6,"Q7 6.2 'Equipment Cleaning and Use Record', PDF p18: equipment cleaning and use record: cleaning and maintenance (6)"
+ICH Q7 6.2,11,"Q7 6.2 'Equipment Cleaning and Use Record', PDF p18: equipment cleaning and use record: record completeness (11)"
+ICH Q7 6.3,11,"Q7 6.3 'Records of Raw Materials, Intermediates, API Labelling and P', PDF p19: records of raw materials, labelling and packaging materials"
+ICH Q7 6.4,11,"Q7 6.4 'Master Production Instructions (Master Production and Contro', PDF p19: master production instructions"
+ICH Q7 6.5,11,"Q7 6.5 'Batch Production Records (Batch Production and Control Recor', PDF p20: batch production records"
+ICH Q7 6.6,2,"Q7 6.6 'Laboratory Control Records', PDF p20: laboratory control records: complete data (trustworthiness); mirrors 211.194(a)"
+ICH Q7 6.6,3,"Q7 6.6 'Laboratory Control Records', PDF p20: laboratory control records: lab controls; mirrors 211.194(a)"
+ICH Q7 6.7,11,"Q7 6.7 'Batch Production Record Review', PDF p21: batch production record review"
+ICH Q7 7,9,"Q7 7 'Materials Management', PDF p22: materials management"
+ICH Q7 7.1,9,"Q7 7.1 'General Controls', PDF p22: general controls, supplier approval"
+ICH Q7 7.2,9,"Q7 7.2 'Receipt and Quarantine', PDF p22: receipt and quarantine"
+ICH Q7 7.3,9,"Q7 7.3 'Sampling and Testing of Incoming Production Materials', PDF p22: sampling and testing of incoming materials, identity test, CoA reliance"
+ICH Q7 7.4,9,"Q7 7.4 'Storage', PDF p23: storage of materials"
+ICH Q7 7.5,9,"Q7 7.5 'Re-evaluation', PDF p23: re-evaluation of materials"
+ICH Q7 8,5,"Q7 8 'Production And In-Process Controls', PDF p24: production and in-process controls"
+ICH Q7 8.1,5,"Q7 8.1 'Production Operations', PDF p24: production operations"
+ICH Q7 8.15,4,"Q7 paragraph 8.15, PDF p24: deviations documented and explained; critical deviations investigated"
+ICH Q7 8.2,5,"Q7 8.2 'Time Limits', PDF p24: time limits"
+ICH Q7 8.3,5,"Q7 8.3 'In-process Sampling and Controls', PDF p24: in-process sampling and controls"
+ICH Q7 8.4,5,"Q7 8.4 'Blending Batches of Intermediates or APIs', PDF p25: blending of batches"
+ICH Q7 8.5,6,"Q7 8.5 'Contamination Control', PDF p26: contamination control: carry-over and cross-contamination"
+ICH Q7 9,12,"Q7 9 'PACKAGING AND IDENTIFICATION LABELLING OF APIs AND INTERMEDIATES', PDF p26: packaging and identification labelling"
+ICH Q7 9.1,12,"Q7 9.1 'General', PDF p26: general packaging and labelling controls"
+ICH Q7 9.2,9,"Q7 9.2 'Packaging Materials', PDF p26: packaging materials: containers and closures (9)"
+ICH Q7 9.2,12,"Q7 9.2 'Packaging Materials', PDF p26: packaging materials: packaging control (12)"
+ICH Q7 9.3,12,"Q7 9.3 'Label Issuance and Control', PDF p26: label issuance and control"
+ICH Q7 9.4,12,"Q7 9.4 'Packaging and Labelling Operations', PDF p27: packaging and labelling operations"
+ICH Q7 10,9,"Q7 10 'Storage And Distribution', PDF p28: storage and distribution; bare chapter maps to its dominant subject, warehousing"
+ICH Q7 10.1,9,"Q7 10.1 'Warehousing Procedures', PDF p28: warehousing procedures (material handling)"
+ICH Q7 10.2,,"Q7 10.2 'Distribution Procedures', PDF p28: distribution procedures; no taxonomy category covers distribution logistics"
+ICH Q7 11,3,"Q7 11 'Laboratory Controls', PDF p28: laboratory controls"
+ICH Q7 11.1,3,"Q7 11.1 'General Controls', PDF p28: general lab controls: specifications, test procedures, OOS"
+ICH Q7 11.15,3,"Q7 paragraph 11.15, PDF p29: OOS investigated (lab phase, 3)"
+ICH Q7 11.15,4,"Q7 paragraph 11.15, PDF p29: OOS investigated (full investigation, 4). The baseline cannot split them, so it maps to both"
+ICH Q7 11.2,3,"Q7 11.2 'Testing of Intermediates and APIs', PDF p29: testing of intermediates and APIs"
+ICH Q7 11.3,3,"Q7 11.3 'Validation of Analytical Procedures - see Section 12.', PDF p30: analytical procedure validation (cross-reference to 12.8)"
+ICH Q7 11.4,3,"Q7 11.4 'Certificates of Analysis', PDF p30: certificates of analysis"
+ICH Q7 11.5,10,"Q7 11.5 'Stability Monitoring of APIs', PDF p30: stability monitoring"
+ICH Q7 11.6,10,"Q7 11.6 'Expiry and Retest Dating', PDF p31: expiry and retest dating"
+ICH Q7 11.7,3,"Q7 11.7 'Reserve/Retention Samples', PDF p31: reserve/retention samples"
+ICH Q7 12,5,"Q7 12 'Validation', PDF p31: validation; bare chapter maps to its dominant subject, process validation"
+ICH Q7 12.1,5,"Q7 12.1 'Validation Policy', PDF p31: validation policy"
+ICH Q7 12.2,5,"Q7 12.2 'Validation Documentation', PDF p32: validation documentation"
+ICH Q7 12.3,6,"Q7 12.3 'Qualification', PDF p32: qualification of equipment and ancillary systems (DQ/IQ/OQ/PQ)"
+ICH Q7 12.4,5,"Q7 12.4 'Approaches to Process Validation', PDF p32: approaches to process validation"
+ICH Q7 12.5,5,"Q7 12.5 'Process Validation Program', PDF p33: process validation programme"
+ICH Q7 12.6,5,"Q7 12.6 'Periodic Review of Validated Systems', PDF p33: periodic review of validated systems"
+ICH Q7 12.7,6,"Q7 12.7 'Cleaning Validation', PDF p34: cleaning validation"
+ICH Q7 12.8,3,"Q7 12.8 'Validation of Analytical Methods', PDF p34: validation of analytical methods"
+ICH Q7 13,5,"Q7 13 'Change Control', PDF p35: change control"
+ICH Q7 14,5,"Q7 14 'Rejection And Re-Use Of Materials', PDF p35: rejection and re-use of materials"
+ICH Q7 14.1,5,"Q7 14.1 'Rejection', PDF p35: rejection of non-conforming material"
+ICH Q7 14.2,5,"Q7 14.2 'Reprocessing', PDF p36: reprocessing"
+ICH Q7 14.3,5,"Q7 14.3 'Reworking', PDF p36: reworking"
+ICH Q7 14.4,5,"Q7 14.4 'Recovery of Materials and Solvents', PDF p36: recovery of materials and solvents"
+ICH Q7 14.5,4,"Q7 14.5 'Returns', PDF p37: returns: evaluation and disposition"
+ICH Q7 15,4,"Q7 15 'Complaints And Recalls', PDF p37: complaints and recalls"
+ICH Q7 16,1,"Q7 16 'Contract Manufacturers (Including Laboratories)', PDF p37: contract manufacturers including laboratories: oversight by the contract giver"
+ICH Q7 17,,"Q7 17 'Agents, Brokers, Traders, Distributors, Repackers, And Relabellers', PDF p38: agents, brokers, traders, distributors, repackers, relabellers; bare chapter too heterogeneous to map"
+ICH Q7 17.1,,"Q7 17.1 'Applicability', PDF p38: applicability; generic"
+ICH Q7 17.2,11,"Q7 17.2 'Traceability of Distributed APIs and Intermediates', PDF p38: traceability records of distributed material"
+ICH Q7 17.3,1,"Q7 17.3 'Quality Management', PDF p39: quality management for agents and repackers"
+ICH Q7 17.4,12,"Q7 17.4 'Repackaging, Relabelling and Holding of APIs and Intermediat', PDF p39: repackaging, relabelling and holding"
+ICH Q7 17.5,10,"Q7 17.5 'Stability', PDF p39: stability to support repackaged expiry/retest dates"
+ICH Q7 17.6,11,"Q7 17.6 'Transfer of Information', PDF p39: transfer of quality and regulatory information"
+ICH Q7 17.7,4,"Q7 17.7 'Handling of Complaints and Recalls', PDF p39: complaints and recalls"
+ICH Q7 17.8,4,"Q7 17.8 'Handling of Returns', PDF p40: returns"
+ICH Q7 18,5,"Q7 18 'SPECIFIC GUIDANCE FOR APIs MANUFACTURED BY CELL CULTURE/FERMENTATION', PDF p40: APIs by cell culture/fermentation: process-specific production controls"
+ICH Q7 19,,"Q7 19 'APIs FOR USE IN CLINICAL TRIALS', PDF p43: APIs for clinical trials; outside the corpus (commercial drug manufacturers)"
+ICH Q7 20,,"Q7 20 'Glossary', PDF p45: glossary; generic"
