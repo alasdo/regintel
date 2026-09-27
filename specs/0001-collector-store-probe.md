@@ -477,7 +477,7 @@ Automated. All of these run under `make check`, offline, with fixtures in `tests
 Manual. These are observable once, need network and credentials, and are not automatable offline:
 
 - [ ] M1: `uv run regintel store init` prints `created` and a second run prints `exists`. `https://huggingface.co/datasets/alasdo/regintel-data` is public.
-- [ ] M2: dispatch **Probe fda.gov** from the Actions tab. The log shows the listing and letter status, bytes, sha256 and `looks_like_letter`, and `probe/<run_id>.json` appears on the Dataset. The outcome (blocked or not) is recorded in the PR description. If blocked, a short fallback note is added under `docs/decisions/` before Day 5, as the roadmap requires.
+- [ ] M2 (**after merge**): `workflow_dispatch` only offers workflows that exist on the default branch, so the probe can be dispatched only once this branch is merged to `main`. Then dispatch **Probe fda.gov** from the Actions tab. The log shows the listing and letter status, bytes, sha256 and `looks_like_letter`, and `probe/<run_id>.json` appears on the Dataset. The outcome (blocked or not) is recorded in a small follow-up PR, which also sets this spec's status to `done`. If blocked, that PR adds a short fallback note under `docs/decisions/` before Day 5, as the roadmap requires.
 - [ ] M3: `uv run regintel collect --max-fetches 5` pushes 5 letters (`new_manifest_lines: 5`, `in_scope_rows` ≈ 674 or more). A second run with `--max-fetches 0` prints `new_manifest_lines: 0` and `fetched: 0`.
 
 ## Implementation notes (deviations from the sketches above)
@@ -514,7 +514,7 @@ These are recorded here so the spec stays the contract. All came out of implemen
 5. **Store and append-only guard.** Local and hub implementations, plus `store init`. *Files:* `src/regintel/store/{__init__,base,local,hub}.py`, `tests/store/test_guard.py`, `tests/store/test_hub.py`
 6. **Manifest models and the collect run.** Covers the plan, pending cache, batching, snapshots, skip lines, the summary and the CLI `collect`. *Files:* `src/regintel/collect/{manifest,run}.py`, `src/regintel/cli.py`, `tests/collect/test_run.py`, `tests/test_cli.py`
 7. **Probe command and workflow.** *Files:* `src/regintel/probe.py`, `src/regintel/cli.py`, `.github/workflows/probe.yml`, `tests/test_probe.py`, `tests/test_workflows.py`
-8. **Live checks M1–M3.** The owner runs `store init` and dispatches the probe. Record the outcomes in the PR, and add a fallback note in `docs/decisions/` if blocked. *Files:* none, or `docs/decisions/0002-collection-fallback.md` if blocked.
+8. **Live checks.** M1 and M3 run before merge, and their outcomes go in this PR's description. M2 runs after merge (see above); its outcome goes in a follow-up PR that sets `status: done` here, plus `docs/decisions/0002-collection-fallback.md` if the runner was blocked. *Files (follow-up PR):* this spec, and optionally `docs/decisions/0002-collection-fallback.md`.
 
 ## Risks and open questions
 
