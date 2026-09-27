@@ -130,9 +130,9 @@ An in-scope row is fetched when either of these holds:
 
 A refetch whose sha256 matches an existing manifest line for that id adds nothing. A different sha256 adds a new file and a new line, and the old file stays. Comparing against the snapshot rather than the manifest keeps a same-sha refetch from triggering again every week.
 
-A listing snapshot is written only when its canonical content changes. Canonical content means the deduplicated rows sorted by `letter_id`, serialised as JSONL with sorted keys, and gzipped with `mtime=0`. The latest snapshot therefore records close-out changes without refetching letters. Snapshots hold **all** listing rows, in scope or not, so every scope decision can be recomputed and audited.
+A listing snapshot is written only when its canonical content changes **and every repost in the plan got a definitive answer** (a letter page, stored or unchanged, or a 404). Unfetched *new* letters need no such gate, because they stay unknown and are planned again next run. For ids missing from the latest snapshot (for example mid-backfill), the refetch rule compares against the `posted_date` on the newest manifest line for that id. Canonical content means the deduplicated rows sorted by `letter_id`, serialised as JSONL with sorted keys, and gzipped with `mtime=0`. The latest snapshot therefore records close-out changes without refetching letters. Snapshots hold **all** listing rows, in scope or not, so every scope decision can be recomputed and audited.
 
-`data/cache/pending/` holds fetched but unpushed pages. On start, pending records are pushed first with their original `retrieved_at`. After a successful commit, the pushed entries are deleted. `data/` is gitignored, and `data/raw/**` is guard-protected, which is why the cache lives in `data/cache/`.
+`data/cache/pending/<store key>/` holds fetched but unpushed pages. The key is a hash of the destination store's identity, so a `--no-push` dry run's pages can never reach the Hub dataset. On start, pending records are pushed first with their original `retrieved_at`. After a successful commit, the pushed entries are deleted. `data/` is gitignored, and `data/raw/**` is guard-protected, which is why the cache lives in `data/cache/`.
 
 ### Volume and duration estimates (from the 2026-09-27 listing)
 
@@ -257,7 +257,7 @@ An empty issuing office is allowed, because it occurs in real in-scope rows.
 - the **row count** equals `recordsTotal`
 - after `dedupe_rows`, no `letter_id` appears twice with *different* fields. Identical duplicates are dropped and counted.
 
-If the first two checks fail, it refetches the whole listing once and then raises. A conflicting duplicate raises at once. Separately, it raises `ListingSchemaError` if the listing has 0 rows or 0 in-scope rows: an empty result means drift or a block, not "nothing new".
+A pass is trusted when it passes these checks and either has no duplicates or has the same letter ids as the pass before it, since a row shifting across a page boundary looks exactly like FDA's genuine duplicate rows while hiding a missing row. It makes up to 3 passes, then raises. Separately, it raises `ListingSchemaError` if the listing has 0 rows or 0 in-scope rows: an empty result means drift or a block, not "nothing new".
 
 ```python
 # src/regintel/collect/page.py
@@ -446,7 +446,7 @@ Automated. All of these run under `make check`, offline, with fixtures in `tests
 - [ ] `tests/test_letter_type.py::test_rules_sha_pinned`: `rules_sha256()` equals the value committed in the test, so changing a rule forces a visible test update and a `RULES_VERSION` bump.
 - [ ] `tests/collect/test_listing.py::test_parse_listing_page_golden`: `listing_page.json` (real, trimmed to ~15 rows) gives `listing_page.expected.json`. The fixture includes the `(CDER)`, `| CDER` and ORA office variants, an empty office, a close-out cell, `<br />` in a subject, `&amp;`/`&#039;` in a company, and the identical Lone Pine Farm duplicate.
 - [ ] `tests/collect/test_listing.py::test_schema_drift_fails`: each of 7 cells, a missing href, a bad date, an empty subject and a missing `recordsTotal` raises `ListingSchemaError`.
-- [ ] `tests/collect/test_listing.py::test_fetch_listing_paginates_and_detects_shift`: 3 mocked pages are joined in order. When `recordsTotal` changes between pages, it refetches once, then raises.
+- [ ] `tests/collect/test_listing.py::test_fetch_listing_paginates`, `::test_fetch_listing_detects_shift_then_recovers`, `::test_recordstotal_change_persisting_raises`, `::test_fetch_listing_raises_when_shift_persists`, `::test_shift_disguised_as_duplicate_is_refetched`: pages are joined in order, and shifts are detected and re-read, raising after 3 inconsistent passes.
 - [ ] `tests/collect/test_listing.py::test_identical_duplicates_dropped_conflicting_raise`
 - [ ] `tests/collect/test_listing.py::test_empty_listing_fails`: 0 rows, or 0 in-scope rows, raise `ListingSchemaError`.
 - [ ] `tests/collect/test_http.py::test_min_interval_between_request_starts`: with a fake clock and sleep, 3 GETs, including a retried one, are ≥ 30 s apart.
@@ -479,6 +479,24 @@ Manual. These are observable once, need network and credentials, and are not aut
 - [ ] M1: `uv run regintel store init` prints `created` and a second run prints `exists`. `https://huggingface.co/datasets/alasdo/regintel-data` is public.
 - [ ] M2: dispatch **Probe fda.gov** from the Actions tab. The log shows the listing and letter status, bytes, sha256 and `looks_like_letter`, and `probe/<run_id>.json` appears on the Dataset. The outcome (blocked or not) is recorded in the PR description. If blocked, a short fallback note is added under `docs/decisions/` before Day 5, as the roadmap requires.
 - [ ] M3: `uv run regintel collect --max-fetches 5` pushes 5 letters (`new_manifest_lines: 5`, `in_scope_rows` ≈ 674 or more). A second run with `--max-fetches 0` prints `new_manifest_lines: 0` and `fetched: 0`.
+
+## Implementation notes (deviations from the sketches above)
+
+These are recorded here so the spec stays the contract. All came out of implementation or the independent review.
+
+- **Store protocol additions:** `identity` (keys the pending cache per destination) and `list_paths(prefix, revision)` (finds the latest snapshot).
+- **Return values and client:**
+  - `fetch_listing` returns `(rows, duplicates_dropped)`.
+  - `PoliteClient` gains `now()` and an optional `on_request` hook. It waits in an httpx request hook, so redirect hops are spaced too. A redirect loop raises `FetchFailed`.
+  - `FetchResult` gains `elapsed_s`, the time fda.gov took, excluding our own wait.
+- **Summary and probe records:**
+  - `CollectSummary` gains `failed` and `out_of_scope_drug_like`. Only *newly seen* out-of-scope CGMP/Pharm subjects are logged.
+  - `ProbeRecord` adds `ok`, `runner_os`, `runner_name` and `error`.
+- **Rules hash:** `rules_sha256()` hashes the rule content (patterns, order, flags, `NORMALISER_VERSION`), not module source. `PET` is word-bounded. `RULES_VERSION` stays 1 because no data had been published under the earlier hash.
+- **Hub errors:**
+  - `HubStore.read_bytes` treats only a real 404 (`RemoteEntryNotFoundError`) as "absent". Outages propagate, so the append-only guard can never see a missing manifest.
+  - A failed commit is a `ConcurrentWriteError` whenever the head has moved, whatever the status code.
+- **Probe:** `regintel probe --push` exits 3 (concurrent write) or 1 (Hub/OS error) after printing the record. The workflow disables persisted checkout credentials and pins the uv version.
 
 ## Task breakdown
 
