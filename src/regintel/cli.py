@@ -84,6 +84,27 @@ def cmd_store_init(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_probe(args: argparse.Namespace) -> int:
+    from regintel.probe import probe
+    from regintel.store.base import guarded_commit
+
+    settings = Settings.from_env()
+    client = _make_client(settings, ROBOTS_CRAWL_DELAY_S)
+    try:
+        record = probe(client, args.url)
+    finally:
+        client.close()
+    payload = record.model_dump_json(indent=2) + "\n"
+    sys.stdout.write(payload)
+    if args.push:
+        store = _make_store(settings, push=True)
+        head = store.head_revision()
+        guarded_commit(
+            store, {f"probe/{record.run_id}.json": payload.encode()}, f"probe {record.run_id}", head
+        )
+    return EXIT_OK if record.ok else EXIT_BLOCKED
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="regintel")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -99,6 +120,12 @@ def build_parser() -> argparse.ArgumentParser:
     store_commands = store.add_subparsers(dest="store_command", required=True)
     init = store_commands.add_parser("init", help="create the public dataset if missing")
     init.set_defaults(func=cmd_store_init)
+    from regintel.probe import DEFAULT_PROBE_URL
+
+    probe = commands.add_parser("probe", help="check that fda.gov is reachable from here")
+    probe.add_argument("--url", default=DEFAULT_PROBE_URL)
+    probe.add_argument("--push", action="store_true", help="commit probe/<run_id>.json")
+    probe.set_defaults(func=cmd_probe)
     return parser
 
 
