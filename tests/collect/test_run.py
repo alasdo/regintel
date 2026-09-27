@@ -526,3 +526,15 @@ def test_manifest_invariants(env: Env, router: respx.MockRouter) -> None:
     lines = env.manifest()
     assert len(lines) == 3  # alpha v1, alpha v2, beta
     assert_invariants(env.store)
+
+
+def test_held_back_snapshot_is_reported(env: Env, router: respx.MockRouter) -> None:
+    """Re-review R2: a snapshot held back by an unresolved repost is visible in the summary."""
+    site = standard_site()
+    site.install(router)
+    assert env.run().snapshot_written is True
+    alpha = site.by_id("alpha-1-09012026")
+    alpha.posted, alpha.status = "09/20/2026", 410
+    summary = env.run(start=10_000)
+    assert summary.snapshot_written is False
+    assert summary.unresolved_reposts == ["alpha-1-09012026"]

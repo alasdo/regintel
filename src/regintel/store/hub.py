@@ -60,9 +60,14 @@ class HubStore:
         except HfHubHTTPError as exc:
             # Decide by the head, not the status code: whatever the Hub answers for a
             # stale parent_commit, a moved head means someone else wrote first.
-            if self.head_revision() != parent_revision:
+            try:
+                moved = self.head_revision() != parent_revision
+            except Exception:
+                raise exc from None  # keep the original commit error, not the follow-up one
+            if moved:
                 raise ConcurrentWriteError(
-                    f"{self.repo_id} moved past {parent_revision}; nothing was written"
+                    f"{self.repo_id} moved past {parent_revision}; the commit may or may not "
+                    f"have landed ({exc}). A rerun is safe: stored versions are deduplicated."
                 ) from exc
             raise
         return str(info.oid)

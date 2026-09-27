@@ -60,6 +60,8 @@ class CollectSummary:
     unexpected_pages: int
     commits: int
     blocked: bool
+    snapshot_written: bool
+    unresolved_reposts: list[str]  # reposts holding the snapshot back: investigate if persistent
     dataset_revision_before: str
     dataset_revision_after: str
 
@@ -318,6 +320,11 @@ def collect(
     #    need no gate, because they stay unknown and are planned again next run.
     extra: dict[str, bytes] = {}
     complete = reposts <= resolved
+    unresolved = sorted(reposts - resolved)
+    if unresolved:
+        log.warning(
+            "listing snapshot held back by %d unresolved reposts: %s", len(unresolved), unresolved
+        )
     content = snapshot_bytes(listing)
     previous_content = snapshot_bytes(previous[1]) if previous else None
     if complete and content != previous_content:
@@ -352,6 +359,8 @@ def collect(
         unexpected_pages=unexpected,
         commits=writer.commits,
         blocked=blocked,
+        snapshot_written=bool(extra),
+        unresolved_reposts=unresolved,
         dataset_revision_before=revision_before,
         dataset_revision_after=writer.head,
     )

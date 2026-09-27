@@ -139,7 +139,7 @@ A listing snapshot is written only when its canonical content changes **and ever
 | Run | Requests | Wall-clock at 30 s |
 |---|---|---|
 | First backfill | 8 listing pages + 674 letters = 682 | ≈ 5 h 41 min, plus retries. Runs on the owner's PC, resumable. |
-| Weekly increment | 8 listing pages + ~2–3 new in-scope letters (674 letters over ~296 weeks ≈ 2.3/week) | ≈ 5–6 min |
+| Weekly increment | 8 listing pages (16 if the listing contains duplicate rows, which must be confirmed by a second pass; 0 duplicates on 2026-09-27) + ~2–3 new in-scope letters (674 letters over ~296 weeks ≈ 2.3/week) | ≈ 5–6 min |
 | Probe | 1 listing page (`length=10`) + 1 letter | ≈ 30 s |
 
 At 50 letters per batch, the backfill makes ≈ 14 commits.
@@ -496,6 +496,8 @@ These are recorded here so the spec stays the contract. All came out of implemen
 - **Hub errors:**
   - `HubStore.read_bytes` treats only a real 404 (`RemoteEntryNotFoundError`) as "absent". Outages propagate, so the append-only guard can never see a missing manifest.
   - A failed commit is a `ConcurrentWriteError` whenever the head has moved, whatever the status code.
+- **Snapshot visibility:** `CollectSummary` gains `snapshot_written` and `unresolved_reposts`, and a warning is logged when a repost holds the snapshot back.
+- **Known limitation:** a letter known only from `skipped.jsonl` (a 404) has no posted date to compare, so a repost of it before any snapshot contains it is not detected. `SkipLine` may gain `posted_date` in a later schema version.
 - **Probe:** `regintel probe --push` exits 3 (concurrent write) or 1 (Hub/OS error) after printing the record. The workflow disables persisted checkout credentials and pins the uv version.
 
 ## Task breakdown
