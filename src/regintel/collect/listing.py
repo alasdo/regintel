@@ -172,22 +172,45 @@ def _fetch_all_pages(client: PoliteClient, page_size: int) -> tuple[list[Listing
     return rows, None
 
 
+def _checked_pass(client: PoliteClient, page_size: int) -> tuple[list[ListingRow], int, str | None]:
+    """One pass, deduplicated; returns (rows, duplicates dropped, problem or None)."""
+    rows, problem = _fetch_all_pages(client, page_size)
+    if problem:
+        return rows, 0, problem
+    try:
+        unique, dropped = dedupe_rows(rows)
+    except ListingSchemaError as exc:
+        return rows, 0, str(exc)
+    return unique, dropped, None
+
+
+MAX_PASSES = 3
+
+
 def fetch_listing(client: PoliteClient, page_size: int = 500) -> tuple[list[ListingRow], int]:
     """All listing rows, deduplicated, in listing order, plus the number of duplicates dropped.
 
-    Refetches the whole listing once if rows shifted while paging.
+    A pass is trusted when it is internally consistent and either has no duplicates or has
+    the same letter ids as the pass before it. Rows shifting across a page boundary
+    mid-paging look exactly like FDA's genuine duplicate rows (and hide a missing row), so
+    duplicates are only accepted once two passes agree.
     """
-    rows, problem = _fetch_all_pages(client, page_size)
-    if problem:
-        log.warning("listing inconsistent (%s); refetching once", problem)
-        rows, problem = _fetch_all_pages(client, page_size)
-        if problem:
-            raise ListingSchemaError(problem)
+    previous_ids: set[str] | None = None
+    problem = "no pass made"
+    for attempt in range(1, MAX_PASSES + 1):
+        rows, dropped, problem_or_none = _checked_pass(client, page_size)
+        ids = {r.letter_id for r in rows}
+        if problem_or_none is None and (dropped == 0 or ids == previous_ids):
+            break
+        problem = problem_or_none or f"{dropped} duplicate rows not yet confirmed"
+        previous_ids = None if problem_or_none else ids
+        log.warning("listing pass %d: %s; reading it again", attempt, problem)
+    else:
+        raise ListingSchemaError(f"listing unstable after {MAX_PASSES} passes: {problem}")
+    if dropped:
+        log.info("dropped %d identical duplicate listing rows (confirmed by two passes)", dropped)
     if not rows:
         raise ListingSchemaError("listing is empty: drift or a block, not 'nothing new'")
-    unique, dropped = dedupe_rows(rows)
-    if dropped:
-        log.info("dropped %d identical duplicate listing rows", dropped)
-    if not any(letter_type(r.subject) for r in unique):
+    if not any(letter_type(r.subject) for r in rows):
         raise ListingSchemaError("listing has no in-scope rows: drift or a block")
-    return unique, dropped
+    return rows, dropped

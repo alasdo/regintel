@@ -70,18 +70,23 @@ def plan_fetches(
     skipped: Sequence[SkipLine],
     previous_snapshot: Sequence[ListingRow] | None,
 ) -> list[ListingRow]:
-    """Rows to fetch: unknown ids, plus known ids FDA reposted since the last snapshot.
+    """Rows to fetch: unknown ids, plus known ids FDA reposted since we last saw them.
 
-    Comparing posted dates against the snapshot (not the manifest) means a same-hash
-    refetch is not repeated every run. Newest posted first, ties by letter_id.
+    "Last seen" is the posted date in the latest snapshot, or, for ids the snapshot lacks
+    (e.g. mid-backfill), the posted date on the newest manifest line for that id.
+    Comparing against the snapshot means a same-hash refetch is not repeated every run.
+    Newest posted first, ties by letter_id.
     """
     known = {m.letter_id for m in manifest} | {s.letter_id for s in skipped}
-    previous = {r.letter_id: r.posted_date for r in previous_snapshot or ()}
+    last_seen: dict[str, date] = {}
+    for line in sorted(manifest, key=lambda m: m.retrieved_at):
+        last_seen[line.letter_id] = line.listing.posted_date
+    last_seen.update({r.letter_id: r.posted_date for r in previous_snapshot or ()})
     plan = [
         row
         for row in in_scope
         if row.letter_id not in known
-        or (row.letter_id in previous and previous[row.letter_id] != row.posted_date)
+        or (row.letter_id in last_seen and last_seen[row.letter_id] != row.posted_date)
     ]
     return sorted(plan, key=lambda r: (-r.posted_date.toordinal(), r.letter_id))
 
@@ -229,6 +234,9 @@ def collect(
     )
     previous = writer.latest_snapshot()
     plan = plan_fetches(in_scope, writer.manifest, writer.skipped, previous and previous[1])
+    known_ids = {m.letter_id for m in writer.manifest} | {s.letter_id for s in writer.skipped}
+    reposts = {r.letter_id for r in plan if r.letter_id in known_ids}
+    resolved: set[str] = set()  # reposts that got a definitive answer (letter page or 404)
     todo = plan if max_fetches is None else plan[:max_fetches]
     log.info("listing %d rows, %d in scope, %d to fetch", len(listing), len(in_scope), len(todo))
 
@@ -262,6 +270,7 @@ def collect(
                 )
             )
             skip_counts["http_404"] += 1
+            resolved.add(row.letter_id)
         elif not looks_like_letter(result.body):
             unexpected += 1
             consecutive += 1
@@ -272,6 +281,7 @@ def collect(
                 break
             continue
         else:
+            resolved.add(row.letter_id)
             sha = hashlib.sha256(result.body).hexdigest()
             if (row.letter_id, sha) in writer.versions:
                 unchanged += 1
@@ -301,10 +311,11 @@ def collect(
                 pending.remove(line)
             batch, skips = [], []
 
-    # 4. Final batch, plus a listing snapshot only when the whole plan completed:
-    #    a snapshot marks reposts as handled, so it must not run ahead of the fetches.
+    # 4. Final batch, plus a listing snapshot. A snapshot marks reposts as seen, so it is
+    #    written only when every repost got a definitive answer; unfetched *new* letters
+    #    need no gate, because they stay unknown and are planned again next run.
     extra: dict[str, bytes] = {}
-    complete = not blocked and failed == 0 and len(todo) == len(plan)
+    complete = reposts <= resolved
     content = snapshot_bytes(listing)
     previous_content = snapshot_bytes(previous[1]) if previous else None
     if complete and content != previous_content:

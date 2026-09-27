@@ -318,7 +318,13 @@ def test_blocked_mid_run_pushes_progress(env: Env, router: respx.MockRouter) -> 
     assert summary.blocked is True
     assert [m.letter_id for m in env.manifest()] == ["alpha-1-09012026"]
     assert site.calls("gamma-3-07012026") == 0  # stopped at the block
-    assert snapshots(env) == []  # plan incomplete: reposts must not be forgotten
+    site.by_id("beta-2-08012026").status = 200
+    env.run(start=10_000)  # unfetched new letters are simply planned again
+    assert {m.letter_id for m in env.manifest()} == {
+        "alpha-1-09012026",
+        "beta-2-08012026",
+        "gamma-3-07012026",
+    }
 
 
 def test_three_unexpected_pages_blocks(env: Env, router: respx.MockRouter) -> None:
@@ -337,15 +343,15 @@ def test_three_unexpected_pages_blocks(env: Env, router: respx.MockRouter) -> No
     assert env.manifest() == []
 
 
-def test_max_fetches_limits_and_defers_snapshot(env: Env, router: respx.MockRouter) -> None:
+def test_max_fetches_limits_fetches(env: Env, router: respx.MockRouter) -> None:
     site = standard_site()
     site.install(router)
     summary = env.run(max_fetches=2)
     assert summary.fetched == 2
-    assert snapshots(env) == []
+    assert len(snapshots(env)) == 1  # no reposts pending, so the listing is recorded
     summary = env.run(start=10_000)
     assert summary.new_manifest_lines == 1
-    assert len(snapshots(env)) == 1
+    assert site.calls("gamma-3-07012026") == 1
 
 
 def _row(letter_id: str, posted: date, subject: str = CGMP) -> ListingRow:
@@ -413,3 +419,60 @@ def test_blocked_mid_run_pushes_progress_and_exits_2(
     assert [m.letter_id for m in manifest] == ["alpha-1-09012026"]
     assert json.loads(capsys.readouterr().out)["blocked"] is True
     assert_invariants(local)
+
+
+CHALLENGE = b"<html><title>Just a moment...</title></html>"
+
+
+def test_challenge_page_on_repost_does_not_hide_it(env: Env, router: respx.MockRouter) -> None:
+    """Review #2: a repost that got a non-letter page must be retried, not snapshotted away."""
+    site = standard_site()
+    site.install(router)
+    env.run()
+    alpha = site.by_id("alpha-1-09012026")
+    alpha.posted, alpha.version, alpha.body = "09/20/2026", 2, CHALLENGE
+    summary = env.run(start=10_000)
+    assert summary.unexpected_pages == 1
+    alpha.body = None
+    env.run(start=20_000)
+    assert len([m for m in env.manifest() if m.letter_id == alpha.letter_id]) == 2
+
+
+def test_repost_during_multi_run_backfill(env: Env, router: respx.MockRouter) -> None:
+    """Review #3: a letter reposted before the first snapshot exists is still refetched."""
+    site = standard_site()
+    site.install(router)
+    env.run(max_fetches=1)  # stores alpha; plan unfinished
+    alpha = site.by_id("alpha-1-09012026")
+    alpha.posted, alpha.version = "09/20/2026", 2
+    env.run(start=10_000)
+    assert len([m for m in env.manifest() if m.letter_id == alpha.letter_id]) == 2
+
+
+def test_failing_new_letter_does_not_block_snapshots(env: Env, router: respx.MockRouter) -> None:
+    """Review #4: one permanently failing new letter must not stop repost tracking."""
+    site = standard_site()
+    site.by_id("gamma-3-07012026").status = 410
+    site.install(router)
+    summary = env.run()
+    assert summary.failed == 1
+    assert len(snapshots(env)) == 1
+    alpha = site.by_id("alpha-1-09012026")
+    alpha.posted, alpha.version = "09/20/2026", 2
+    env.run(start=10_000)
+    assert len([m for m in env.manifest() if m.letter_id == alpha.letter_id]) == 2
+    assert len(snapshots(env)) == 2
+
+
+def test_failed_repost_defers_snapshot(env: Env, router: respx.MockRouter) -> None:
+    site = standard_site()
+    site.install(router)
+    env.run()
+    alpha = site.by_id("alpha-1-09012026")
+    alpha.posted, alpha.version, alpha.status = "09/20/2026", 2, 410
+    env.run(start=10_000)
+    assert len(snapshots(env)) == 1  # repost unresolved: keep the old snapshot
+    alpha.status = 200
+    env.run(start=20_000)
+    assert len([m for m in env.manifest() if m.letter_id == alpha.letter_id]) == 2
+    assert len(snapshots(env)) == 2
