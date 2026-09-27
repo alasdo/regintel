@@ -16,6 +16,8 @@ from typing import Literal
 LetterType = Literal["cgmp_finished", "api", "compounding", "unapproved_misbranded"]
 
 RULES_VERSION = 1
+# Bump when normalise_subject changes: it decides what the patterns see.
+NORMALISER_VERSION = 1
 
 # Subjects about other product areas are out of scope even when they mention CGMP or drugs.
 _EXCLUDE = (
@@ -27,7 +29,7 @@ _RULES: tuple[tuple[LetterType, str], ...] = (
     ("api", r"CGMP.*(Active Pharmaceutical Ingredient|\bAPI\b)"),
     (
         "cgmp_finished",
-        r"CGMP.*(Finished (Pharmaceutical|Drug)|\bOTC\b|\bDrugs?\b|Drug Products|PET)",
+        r"CGMP.*(Finished (Pharmaceutical|Drug)|\bOTC\b|\bDrugs?\b|Drug Products|\bPET\b)",
     ),
     ("unapproved_misbranded", r"Finished Pharmaceutical.*(Unapproved|Misbrand)"),
 )
@@ -55,6 +57,14 @@ def letter_type(subject: str) -> LetterType | None:
 
 
 def rules_sha256() -> str:
-    """Hash of the rule table itself (patterns and order), recorded with every fetch."""
-    payload = json.dumps({"exclude": _EXCLUDE, "rules": _RULES}, sort_keys=True)
+    """Hash of the rule table (patterns, order, flags, normaliser version), recorded per fetch."""
+    payload = json.dumps(
+        {
+            "exclude": _EXCLUDE,
+            "rules": _RULES,
+            "flags": "IGNORECASE",
+            "normaliser_version": NORMALISER_VERSION,
+        },
+        sort_keys=True,
+    )
     return hashlib.sha256(payload.encode()).hexdigest()

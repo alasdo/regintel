@@ -31,6 +31,11 @@ def test_probe_workflow_shape(fixtures_dir: Path) -> None:
             assert re.fullmatch(r"[\w.-]+/[\w.-]+@[0-9a-f]{40}", step["uses"]), step["uses"]
         assert "${{" not in step.get("run", ""), f"expression interpolated in run: {step}"
 
+    checkout = next(s for s in steps if s.get("uses", "").startswith("actions/checkout@"))
+    assert checkout["with"]["persist-credentials"] is False
+    setup_uv = next(s for s in steps if s.get("uses", "").startswith("astral-sh/setup-uv@"))
+    assert re.fullmatch(r"\d+\.\d+\.\d+", setup_uv["with"]["version"])
+
     token_steps = [s for s in steps if "HF_TOKEN" in json.dumps(s)]
     assert len(token_steps) == 1
     assert token_steps[0]["env"]["HF_TOKEN"] == "${{ secrets.HF_TOKEN }}"

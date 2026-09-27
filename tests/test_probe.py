@@ -5,6 +5,7 @@ import json
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import ClassVar
 
 import httpx
 import pytest
@@ -98,22 +99,94 @@ def test_probe_blocked_exits_2_and_still_pushes(
     assert path == f"probe/{stored['run_id']}.json"
 
 
+class FakeHfApi:
+    """Stands in for huggingface_hub.HfApi on the real HubStore path (no network)."""
+
+    instances: ClassVar[list["FakeHfApi"]] = []
+
+    def __init__(self, token: str | None = None) -> None:
+        self.token = token
+        self.files: dict[str, bytes] = {}
+        self.fail_commit = False
+        FakeHfApi.instances.append(self)
+
+    def repo_info(self, repo_id: str, **kw: object) -> object:
+        return type("Info", (), {"sha": f"rev{len(self.files)}"})()
+
+    def hf_hub_download(self, repo_id: str, filename: str, **kw: object) -> str:
+        import httpx2
+        from huggingface_hub.errors import RemoteEntryNotFoundError
+
+        request = httpx2.Request("GET", "https://huggingface.co/x")
+        raise RemoteEntryNotFoundError("404", response=httpx2.Response(404, request=request))
+
+    def create_commit(self, repo_id: str, operations: list[object], **kw: object) -> object:
+        if self.fail_commit:
+            raise OSError("hub unreachable")
+        for op in operations:
+            self.files[op.path_in_repo] = op.path_or_fileobj  # type: ignore[attr-defined]
+        return type("CommitInfo", (), {"oid": f"rev{len(self.files)}"})()
+
+
+@pytest.fixture
+def fake_hub(monkeypatch: pytest.MonkeyPatch) -> type[FakeHfApi]:
+    FakeHfApi.instances = []
+    monkeypatch.setattr("regintel.store.hub.HfApi", FakeHfApi)
+    monkeypatch.setenv("HF_TOKEN", SENTINEL)
+    monkeypatch.setattr(cli, "_make_client", lambda settings, interval: fast_client())
+    return FakeHfApi
+
+
 def test_probe_record_never_contains_token(
     router: respx.MockRouter,
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
+    fake_hub: type[FakeHfApi],
     letter_html: bytes,
     capsys: pytest.CaptureFixture[str],
     caplog: pytest.LogCaptureFixture,
 ) -> None:
+    """The token reaches HfApi (so the path is real) but no record, stdout or log."""
     router.get(LISTING_URL).mock(return_value=_listing())
     router.get(DEFAULT_PROBE_URL).mock(return_value=httpx.Response(200, content=letter_html))
     with caplog.at_level("DEBUG"):
-        code, store = _run_cli(tmp_path, monkeypatch)
-    assert code == 0
-    head = store.head_revision()
-    (path,) = store.list_paths("probe/", head)
-    assert SENTINEL.encode() not in (store.read_bytes(path, head) or b"")
+        assert cli.main(["probe", "--push"]) == 0
+    (api,) = fake_hub.instances
+    assert api.token == SENTINEL
+    ((path, data),) = api.files.items()
+    assert path.startswith("probe/")
+    assert SENTINEL.encode() not in data
     out = capsys.readouterr()
     assert SENTINEL not in out.out + out.err
     assert SENTINEL not in caplog.text
+
+
+def test_probe_push_failure_exits_1_after_printing_record(
+    router: respx.MockRouter,
+    fake_hub: type[FakeHfApi],
+    letter_html: bytes,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Review #13: a failed push is reported with an exit code, not a traceback."""
+    router.get(LISTING_URL).mock(return_value=_listing())
+    router.get(DEFAULT_PROBE_URL).mock(return_value=httpx.Response(200, content=letter_html))
+    original = FakeHfApi.__init__
+
+    def failing_init(self: FakeHfApi, token: str | None = None) -> None:
+        original(self, token)
+        self.fail_commit = True
+
+    monkeypatch.setattr(FakeHfApi, "__init__", failing_init)
+    assert cli.main(["probe", "--push"]) == 1
+    assert json.loads(capsys.readouterr().out)["ok"] is True  # the outcome was still printed
+
+
+def test_probe_elapsed_excludes_politeness_wait(
+    router: respx.MockRouter, letter_html: bytes
+) -> None:
+    """Review #16: elapsed_s measures fda.gov, not our own 30 s wait."""
+    router.get(LISTING_URL).mock(return_value=_listing())
+    router.get(DEFAULT_PROBE_URL).mock(return_value=httpx.Response(200, content=letter_html))
+    client = PoliteClient(FetchPolicy(min_interval_s=0.5), "regintel-test")  # real 0.5 s wait
+    record = probe(client, DEFAULT_PROBE_URL, env={})
+    assert record.letter.elapsed_s is not None
+    assert record.letter.elapsed_s < 0.4

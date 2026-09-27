@@ -7,7 +7,7 @@ import dataclasses
 import json
 import logging
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from regintel.collect.http import BlockedError, FetchFailed, FetchPolicy, PoliteClient
 from regintel.collect.listing import ListingSchemaError
@@ -34,6 +34,16 @@ def _make_store(settings: Settings, *, push: bool) -> Store:
     from regintel.store.hub import HubStore
 
     return HubStore(settings.dataset_repo, settings.hf_token)
+
+
+def _int_at_least(minimum: int) -> Callable[[str], int]:
+    def parse(text: str) -> int:
+        value = int(text)
+        if value < minimum:
+            raise argparse.ArgumentTypeError(f"must be >= {minimum}")
+        return value
+
+    return parse
 
 
 def _emit(payload: object) -> None:
@@ -98,10 +108,20 @@ def cmd_probe(args: argparse.Namespace) -> int:
     sys.stdout.write(payload)
     if args.push:
         store = _make_store(settings, push=True)
-        head = store.head_revision()
-        guarded_commit(
-            store, {f"probe/{record.run_id}.json": payload.encode()}, f"probe {record.run_id}", head
-        )
+        try:
+            head = store.head_revision()
+            guarded_commit(
+                store,
+                {f"probe/{record.run_id}.json": payload.encode()},
+                f"probe {record.run_id}",
+                head,
+            )
+        except ConcurrentWriteError as exc:
+            log.error("probe record not pushed: %s", exc)
+            return EXIT_CONCURRENT
+        except OSError as exc:  # includes Hub HTTP errors
+            log.error("probe record not pushed: %s", exc)
+            return EXIT_ERROR
     return EXIT_OK if record.ok else EXIT_BLOCKED
 
 
@@ -110,8 +130,8 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
 
     collect = commands.add_parser("collect", help="fetch new in-scope letters into raw/")
-    collect.add_argument("--max-fetches", type=int, default=None)
-    collect.add_argument("--batch-size", type=int, default=50)
+    collect.add_argument("--max-fetches", type=_int_at_least(0), default=None)
+    collect.add_argument("--batch-size", type=_int_at_least(1), default=50)
     collect.add_argument("--min-interval", type=float, default=ROBOTS_CRAWL_DELAY_S)
     collect.add_argument("--no-push", action="store_true", help="write to a local store instead")
     collect.set_defaults(func=cmd_collect)

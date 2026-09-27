@@ -34,6 +34,7 @@ class FetchResult:
     body: bytes
     retrieved_at: datetime
     attempts: int
+    elapsed_s: float  # time fda.gov took for the final request (excludes our wait)
 
 
 class BlockedError(RuntimeError):
@@ -130,6 +131,7 @@ class PoliteClient:
                         body=response.content,
                         retrieved_at=self._now(),
                         attempts=attempt,
+                        elapsed_s=response.elapsed.total_seconds(),
                     )
                 if status not in RETRY_STATUSES:
                     raise FetchFailed(f"HTTP {status} from {url}")

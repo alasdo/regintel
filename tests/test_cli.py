@@ -22,3 +22,13 @@ def test_push_without_token_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_store_init_without_token_fails(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("HF_TOKEN", raising=False)
     assert cli.main(["store", "init"]) == 1
+
+
+@pytest.mark.parametrize(
+    "args",
+    [["collect", "--max-fetches", "-1"], ["collect", "--batch-size", "0"]],
+)
+def test_bad_numbers_rejected(args: list[str]) -> None:
+    with pytest.raises(SystemExit) as exc:
+        cli.main(args)
+    assert exc.value.code == 2  # argparse usage error

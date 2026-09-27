@@ -82,7 +82,9 @@ def _fetch(
             sha256=hashlib.sha256(body).hexdigest(),
             attempts=result.attempts,
         )
-    fields["elapsed_s"] = round(time.monotonic() - started, 3)
+        fields["elapsed_s"] = round(result.elapsed_s, 3)
+        return fields, body
+    fields["elapsed_s"] = round(time.monotonic() - started, 3)  # no response: wall time
     return fields, body
 
 

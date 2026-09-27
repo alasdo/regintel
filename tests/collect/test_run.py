@@ -15,7 +15,13 @@ import respx
 
 from regintel.collect.http import FetchPolicy, PoliteClient
 from regintel.collect.listing import LISTING_URL, ListingRow
-from regintel.collect.manifest import ManifestLine, SkipLine, parse_manifest, parse_skipped
+from regintel.collect.manifest import (
+    ManifestLine,
+    SkipLine,
+    parse_manifest,
+    parse_skipped,
+    serialise,
+)
 from regintel.collect.run import CollectSummary, collect, plan_fetches
 from regintel.config import Settings
 from regintel.letter_type import letter_type
@@ -164,6 +170,7 @@ def assert_invariants(store: LocalStore) -> None:
     head = store.head_revision()
     text = (store.read_bytes("raw/manifest.jsonl", head) or b"").decode()
     lines = parse_manifest(text)  # also rejects duplicate (letter_id, sha256)
+    assert serialise(lines) == text  # canonical: parse -> serialise round-trips byte for byte
     assert len({(m.letter_id, m.sha256) for m in lines}) == len(lines)
     for m in lines:
         body = store.read_bytes(m.path, head)
@@ -296,6 +303,7 @@ def test_crash_resume_pushes_pending_with_original_timestamp(
     failing = FailingStore(env.store.root, fail_on=2)
     with pytest.raises(OSError, match="network down"):
         collect(env.settings, env.client(), failing, batch_size=1)
+    assert_invariants(env.store)  # the partial state is still valid
     pending = sorted((env.settings.cache_dir / "pending").rglob("record.json"))
     assert len(pending) == 1
     stranded = ManifestLine.model_validate_json(pending[0].read_text())
@@ -500,3 +508,21 @@ def test_pending_pages_stay_with_their_store(env: Env, router: respx.MockRouter)
     by_id = {m.letter_id: m for m in dry_lines}
     assert by_id[stranded.letter_id].retrieved_at == stranded.retrieved_at
     assert not record.exists()
+
+
+def test_manifest_invariants(env: Env, router: respx.MockRouter) -> None:
+    """Spec 0001: invariants hold across new letters, a new version, a 404 and a no-op run.
+
+    Every other run test also calls assert_invariants through Env.run.
+    """
+    site = standard_site()
+    site.by_id("gamma-3-07012026").status = 404
+    site.install(router)
+    env.run()
+    alpha = site.by_id("alpha-1-09012026")
+    alpha.posted, alpha.version = "09/20/2026", 2
+    env.run(start=10_000)
+    env.run(start=20_000)
+    lines = env.manifest()
+    assert len(lines) == 3  # alpha v1, alpha v2, beta
+    assert_invariants(env.store)

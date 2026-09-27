@@ -329,8 +329,10 @@ def collect(
         pending.remove(line)
 
     drug_like_set = set(drug_like)
+    seen_before = {r.subject for r in previous[1]} if previous else set()
     for subject in drug_like:
-        log.info("out of scope but mentions CGMP/Pharm: %r", subject)
+        if subject not in seen_before:
+            log.info("new out-of-scope subject mentioning CGMP/Pharm: %r", subject)
     return CollectSummary(
         run_id=run_id,
         rules_version=RULES_VERSION,
