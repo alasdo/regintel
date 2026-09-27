@@ -6,12 +6,11 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from huggingface_hub import CommitOperationAdd, HfApi
-from huggingface_hub.errors import EntryNotFoundError, HfHubHTTPError
+from huggingface_hub.errors import HfHubHTTPError, RemoteEntryNotFoundError
 
 from regintel.store.base import ConcurrentWriteError
 
 REPO_TYPE = "dataset"
-_CONFLICT_STATUSES = frozenset({409, 412})
 
 
 class HubStore:
@@ -30,7 +29,7 @@ class HubStore:
             local = self._api.hf_hub_download(
                 self.repo_id, path, repo_type=REPO_TYPE, revision=revision
             )
-        except EntryNotFoundError:
+        except RemoteEntryNotFoundError:  # a real 404; outages must propagate, never mean "absent"
             return None
         return Path(str(local)).read_bytes()
 
@@ -55,7 +54,9 @@ class HubStore:
                 parent_commit=parent_revision,
             )
         except HfHubHTTPError as exc:
-            if exc.response.status_code in _CONFLICT_STATUSES:
+            # Decide by the head, not the status code: whatever the Hub answers for a
+            # stale parent_commit, a moved head means someone else wrote first.
+            if self.head_revision() != parent_revision:
                 raise ConcurrentWriteError(
                     f"{self.repo_id} moved past {parent_revision}; nothing was written"
                 ) from exc

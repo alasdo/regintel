@@ -6,7 +6,11 @@ from typing import Any
 
 import httpx2
 import pytest
-from huggingface_hub.errors import HfHubHTTPError, RemoteEntryNotFoundError
+from huggingface_hub.errors import (
+    HfHubHTTPError,
+    LocalEntryNotFoundError,
+    RemoteEntryNotFoundError,
+)
 
 from regintel.store.base import ConcurrentWriteError
 from regintel.store.hub import HubStore, init_dataset
@@ -26,6 +30,8 @@ class FakeApi:
     created: list[dict[str, Any]] = field(default_factory=list)
     commits: list[dict[str, Any]] = field(default_factory=list)
     conflict: bool = False
+    commit_error: int | None = None
+    offline: bool = False
 
     def repo_info(self, repo_id: str, **kw: Any) -> Any:
         return type("Info", (), {"sha": self.sha})()
@@ -34,6 +40,8 @@ class FakeApi:
         return filename in self.files
 
     def hf_hub_download(self, repo_id: str, filename: str, **kw: Any) -> str:
+        if self.offline:
+            raise LocalEntryNotFoundError("connection issue or Hub downtime")
         if filename not in self.files:
             raise _http_error(RemoteEntryNotFoundError, 404)
         out = self.tmp / filename.replace("/", "_")
@@ -42,7 +50,10 @@ class FakeApi:
 
     def create_commit(self, repo_id: str, operations: Any, **kw: Any) -> Any:
         if self.conflict:
+            self.sha = "rev-other"  # another writer got there first
             raise _http_error(HfHubHTTPError, 412)
+        if self.commit_error is not None:
+            raise _http_error(HfHubHTTPError, self.commit_error)
         self.commits.append({"ops": operations, **kw})
         for op in operations:
             self.files[op.path_in_repo] = op.path_or_fileobj
@@ -90,3 +101,25 @@ def test_init_dataset_idempotent_public(tmp_path: Path) -> None:
     assert api.created == [
         {"repo_id": "alasdo/regintel-data", "repo_type": "dataset", "private": False}
     ]
+
+
+def test_hub_outage_is_not_read_as_missing_file(tmp_path: Path) -> None:
+    """A network error must never look like 'no manifest': that would defeat the guard."""
+    api = FakeApi(tmp_path, files={"raw/manifest.jsonl": b"a\n"}, offline=True)
+    store = HubStore("alasdo/regintel-data", token=None, api=api)  # type: ignore[arg-type]
+    with pytest.raises(LocalEntryNotFoundError):
+        store.read_bytes("raw/manifest.jsonl", "rev0")
+
+
+def test_any_commit_error_after_head_moved_is_concurrent(tmp_path: Path) -> None:
+    api = FakeApi(tmp_path, commit_error=400, sha="rev9")  # someone else committed
+    store = HubStore("alasdo/regintel-data", token=None, api=api)  # type: ignore[arg-type]
+    with pytest.raises(ConcurrentWriteError):
+        store.commit({"raw/letters/x/1.html": b"x"}, "msg", "rev0")
+
+
+def test_commit_error_with_unmoved_head_propagates(tmp_path: Path) -> None:
+    api = FakeApi(tmp_path, commit_error=500, sha="rev0")
+    store = HubStore("alasdo/regintel-data", token=None, api=api)  # type: ignore[arg-type]
+    with pytest.raises(HfHubHTTPError):
+        store.commit({"raw/letters/x/1.html": b"x"}, "msg", "rev0")
