@@ -74,6 +74,7 @@ class FakeApi:
 def test_read_exists_and_commit_with_parent(tmp_path: Path) -> None:
     api = FakeApi(tmp_path, files={"raw/manifest.jsonl": b"a\n"})
     store = HubStore("alasdo/regintel-data", token=None, api=api)  # type: ignore[arg-type]
+    assert store.identity == "hub:alasdo/regintel-data"
     head = store.head_revision()
     assert store.read_bytes("raw/manifest.jsonl", head) == b"a\n"
     assert store.read_bytes("raw/missing", head) is None

@@ -211,7 +211,9 @@ def collect(
     run_id = _new_run_id(client)
     writer = _Writer(store, run_id)
     revision_before = writer.head
-    pending = _Pending(settings.cache_dir / "pending")
+    # Pending pages belong to one destination: a dry run's pages never reach the Hub.
+    store_key = hashlib.sha256(store.identity.encode()).hexdigest()[:12]
+    pending = _Pending(settings.cache_dir / "pending" / store_key)
 
     # 1. Push anything a previous run fetched but could not commit.
     stranded = []

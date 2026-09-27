@@ -16,6 +16,10 @@ class LocalStore:
         self._tree = root / "tree"
         self._rev = root / "REVISION"
 
+    @property
+    def identity(self) -> str:
+        return f"local:{self.root.resolve()}"
+
     def head_revision(self) -> str:
         return f"local-{int(self._rev.read_text()) if self._rev.exists() else 0}"
 

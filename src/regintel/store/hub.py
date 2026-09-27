@@ -18,6 +18,10 @@ class HubStore:
         self.repo_id = repo_id
         self._api = api if api is not None else HfApi(token=token)
 
+    @property
+    def identity(self) -> str:
+        return f"hub:{self.repo_id}"
+
     def head_revision(self) -> str:
         sha = self._api.repo_info(self.repo_id, repo_type=REPO_TYPE).sha
         if not sha:

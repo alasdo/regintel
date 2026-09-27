@@ -18,6 +18,11 @@ class ConcurrentWriteError(RuntimeError):
 
 
 class Store(Protocol):
+    @property
+    def identity(self) -> str:
+        """Stable name of the destination, e.g. 'hub:alasdo/regintel-data'."""
+        ...
+
     def head_revision(self) -> str: ...
 
     def read_bytes(self, path: str, revision: str) -> bytes | None: ...

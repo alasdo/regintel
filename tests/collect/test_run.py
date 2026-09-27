@@ -476,3 +476,27 @@ def test_failed_repost_defers_snapshot(env: Env, router: respx.MockRouter) -> No
     env.run(start=20_000)
     assert len([m for m in env.manifest() if m.letter_id == alpha.letter_id]) == 2
     assert len(snapshots(env)) == 2
+
+
+def test_pending_pages_stay_with_their_store(env: Env, router: respx.MockRouter) -> None:
+    """Review #5: a crashed dry run's pages must never be pushed to another store."""
+    site = standard_site()
+    site.install(router)
+    dry = FailingStore(env.tmp / "dry-run", fail_on=1)
+    with pytest.raises(OSError, match="network down"):
+        collect(env.settings, env.client(), dry, batch_size=1)
+    (record,) = (env.settings.cache_dir / "pending").rglob("record.json")
+    stranded = ManifestLine.model_validate_json(record.read_text())
+
+    env.run(start=10_000)  # the real store must not receive the dry run's page
+    real = {m.letter_id: m for m in env.manifest()}
+    assert real[stranded.letter_id].retrieved_at != stranded.retrieved_at
+    assert record.exists()  # still waiting for its own store
+
+    dry.fail_on = 0
+    collect(env.settings, env.client(start=20_000), dry, batch_size=1)
+    head = dry.head_revision()
+    dry_lines = parse_manifest((dry.read_bytes("raw/manifest.jsonl", head) or b"").decode())
+    by_id = {m.letter_id: m for m in dry_lines}
+    assert by_id[stranded.letter_id].retrieved_at == stranded.retrieved_at
+    assert not record.exists()
