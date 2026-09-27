@@ -1,0 +1,3 @@
+# Paths Claude may not edit (glob, relative to repo root). Enforced by the forge guard hook.
+# Typical entries: raw source data, validated outputs, applied migrations, vendored code.
+data/raw/**
