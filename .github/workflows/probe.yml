@@ -1,0 +1,43 @@
+# Manually dispatched check that fda.gov does not block GitHub runner IPs (spec 0001).
+# Fetches one listing page and one letter page, logs status and sha256, and commits
+# probe/<run_id>.json to the HF Dataset. It never calls a model.
+name: Probe fda.gov
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Letter page to fetch (a current drug CGMP warning letter)
+        required: true
+        default: https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/kdcone-chatsworth-inc-733205-09082026
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.19"
+      - name: Install collector dependencies
+        run: uv sync --extra collect --no-dev --frozen
+      - name: Probe
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          PROBE_URL: ${{ inputs.url }}
+        run: |
+          set -o pipefail
+          uv run --no-sync regintel probe --url "$PROBE_URL" --push | tee probe.json
+      - name: Upload probe record
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: probe-record
+          path: probe.json
+          if-no-files-found: warn

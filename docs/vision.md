@@ -4,16 +4,16 @@ Status: draft · Date: 2026-09-27 · Owner: Anas Lasri Doukkali
 
 ## Problem and audience
 
-FDA warning letters are the most detailed public record of *why* drug manufacturers fail CGMP. They are published as unstructured HTML, one letter at a time. Questions like "how often is data integrity cited in API letters, and how has that changed since 2019?" or "show me letters where OOS results were invalidated without root cause" take hours of manual reading.
+FDA warning letters are the most detailed public record of *why* drug manufacturers fail CGMP. They are published as unstructured HTML, one letter at a time. Questions like "how often is data integrity cited in API letters, and how has that changed since 2021?" or "show me letters where OOS results were invalidated without root cause" take hours of manual reading.
 
-RegIntel v2 is a free, public site that collects CDER drug-manufacturer warning letters, classifies each one into a GMP failure taxonomy with a quoted passage for every label, and makes the cited passages searchable.
+RegIntel v2 is a free, public site that collects FDA drug-manufacturer warning letters, classifies each one into a GMP failure taxonomy with a quoted passage for every label, and makes the cited passages searchable.
 
 - **Primary audience:** QA, QC and regulatory professionals at drug manufacturers, CMOs and API sites; GMP consultants and auditors preparing for inspections.
 - **Secondary audience:** hiring managers reviewing this as a portfolio project. It should show data engineering, *measured* AI, and domain insight into pharma manufacturing.
 
 ## Goals
 
-1. **Corpus.** Ingest every CDER warning letter to drug manufacturers from FY2019 onward. Tag each letter with a deterministic *letter type* derived from its subject line: CGMP finished dose, API (ICH Q7), compounding (503A/503B), or unapproved/misbranding. Record the close-out status where FDA has published a close-out letter. Collection runs weekly through GitHub Actions.
+1. **Corpus.** Ingest every drug warning letter on FDA's live warning-letter listing (posted from January 2021), selected by subject line (drug CGMP finished dose, API, compounding, and finished-pharmaceutical unapproved/misbranding letters), whichever FDA office issued it. The issuing office is kept as metadata. Tag each letter with a deterministic *letter type* derived from its subject line: CGMP finished dose, API (ICH Q7), compounding (503A/503B), or unapproved/misbranding. Record the close-out status where FDA has published a close-out letter. Collection runs weekly through GitHub Actions.
 2. **Classification.** Assign letter-level, multi-label GMP categories (taxonomy below), using a local 7–8B instruct model through Ollama with schema-constrained JSON output. Every label carries at least one verbatim quote from the letter. Unapproved/misbranding content is tagged but not classified. Mixed letters are labelled on their CGMP content only.
 3. **Search.** Hybrid retrieval (BM25 + local embeddings, fused with reciprocal rank fusion at the default *k*) over letter passages. Results show the highlighted passage and link to the letter on fda.gov.
 4. **Trends.** Category frequency by fiscal year and letter type, set beside the FDA Data Dashboard inspection citations as an independent structured signal.
@@ -33,7 +33,7 @@ RegIntel v2 is a free, public site that collects CDER drug-manufacturer warning 
 
 | Source | Use | Access |
 |---|---|---|
-| FDA warning letters (fda.gov listing + letter pages), CDER, FY2019→ | Corpus, labels, search | Public HTML; scraped politely (rate-limited, cached, retried) |
+| FDA warning letters (fda.gov live listing + letter pages), drug letters selected by subject line, posted January 2021→ | Corpus, labels, search | Public HTML; scraped politely (rate-limited, cached, retried) |
 | FDA Data Dashboard, inspection citations (drugs) | Trend cross-check: CFR citation and short description by fiscal year | Public download. These are structured records; the raw 483 documents are not used |
 | 21 CFR 210/211, ICH Q7 section numbering | Taxonomy citations and the baseline mapping | Static reference table in the repo |
 
@@ -65,6 +65,8 @@ All gold labels are mine, produced **blind per letter**: model and baseline outp
 ### Limitations
 
 - **Residual priming.** Blindness is per letter, not global. While labelling, I may already have seen model output on letters outside the sample, which could shift my labels towards the model's tendencies. This is reported as a limitation of the gold set. It is not corrected for.
+- **Window.** FY2019–FY2020 letters are not on FDA's live listing and are not collected, so trends start in FY2021. FY2021 is partial (letters issued from 22 January 2021). Year-over-year comparisons involving FY2021 are marked partial.
+- **Subject-based scope.** Scope is set by subject line. Letters whose subject omits drug-manufacturing terms (for example pure "Unapproved New Drugs/Misbranded", telehealth and COVID-19 letters) are out of scope.
 
 ### Success criteria (test set)
 

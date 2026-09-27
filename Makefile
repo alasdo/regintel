@@ -10,7 +10,7 @@ help:  ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-10s %s\n", $$1, $$2}'
 
 setup:  ## Install dependencies (incl. dev)
-	$(UV) sync
+	$(UV) sync --all-extras
 
 fmt:  ## Format and auto-fix
 	$(RUN) ruff format .
