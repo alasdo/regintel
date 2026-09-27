@@ -1,0 +1,147 @@
+{
+ "draw": 1,
+ "recordsTotal": 14,
+ "recordsFiltered": 14,
+ "data": [
+  [
+   "<time datetime=\"2026-09-22T04:00:00Z\">09/22/2026</time>\n",
+   "<time datetime=\"2026-09-08T04:00:00Z\">09/08/2026</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/kdcone-chatsworth-inc-733205-09082026\">kdc/one Chatsworth, Inc.</a>",
+   "Center for Drug Evaluation and Research (CDER)",
+   "CGMP/Finished Pharmaceuticals/Adulterated",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2024-04-09T13:20:00Z\">04/09/2024</time>\n",
+   "<time datetime=\"2024-03-22T04:00:00Z\">03/22/2024</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/antaria-pty-ltd-674495-03222024\">Antaria Pty. Ltd.</a>",
+   "Center for Drug Evaluation and Research | CDER",
+   "CGMP/Active Pharmaceutical Ingredient (API)/Adulterated<br />\r\n<br />\r\n",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2024-10-01T13:20:00Z\">10/01/2024</time>\n",
+   "<time datetime=\"2024-09-06T04:00:00Z\">09/06/2024</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/diamond-chemical-co-inc-687078-09062024\">Diamond Chemical Co., Inc.</a>",
+   "Division of Pharmaceutical Quality Operations I",
+   "CGMP/Finished Pharmaceuticals/Adulterated",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2022-04-19T13:20:00Z\">04/19/2022</time>\n",
+   "<time datetime=\"2022-04-13T04:00:00Z\">04/13/2022</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/elements-brands-inc-628380-04132022\">Elements Brands Inc.</a>",
+   "",
+   "Finished Pharmaceuticals/Unapproved New Drug/Misbranded",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2026-04-21T04:00:00Z\">04/21/2026</time>\n",
+   "<time datetime=\"2026-02-09T05:00:00Z\">02/09/2026</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/thrive-health-and-wellness-llc-dba-thrive-health-solutions-714891-02092026\">Thrive Health and Wellness, LLC dba Thrive Health Solutions </a>",
+   "Center for Drug Evaluation and Research (CDER)",
+   "Compounding Pharmacy/Adulterated Drug Products ",
+   "",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/thrive-health-and-wellness-llc-dba-thrive-health-solutions-714891-07272026\"><time datetime=\"2026-08-06T04:00:00Z\">08/06/2026</time>\n</a>",
+   ""
+  ],
+  [
+   "<time datetime=\"2021-12-07T14:20:00Z\">12/07/2021</time>\n",
+   "<time datetime=\"2021-11-09T05:00:00Z\">11/09/2021</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/synaptent-llc-610683-11092021\">Synaptent, LLC</a>",
+   "Office of Human and Animal Food Operations-East 6",
+   "New Drug/Misbranded",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/synaptent-llc-610683-02012022-0\"><time datetime=\"2022-02-01T14:00:00Z\">02/01/2022</time>\n</a>",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2026-09-01T04:00:00Z\">09/01/2026</time>\n",
+   "<time datetime=\"2026-08-18T04:00:00Z\">08/18/2026</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/preye-llc-732141-08182026\">PReye, LLC</a>",
+   "Center for Drug Evaluation and Research (CDER)",
+   "CGMP/Finished Pharmaceuticals/Adulterated/Unapproved New Drug<br />\r\n",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2026-09-15T04:00:00Z\">09/15/2026</time>\n",
+   "<time datetime=\"2026-09-04T04:00:00Z\">09/04/2026</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/bausch-lomb-inc-732398-09042026\">Bausch &amp; Lomb Inc. </a>",
+   "Center for Drug Evaluation and Research (CDER)",
+   "CGMP/Finished Pharmaceuticals/Adulterated",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2026-06-16T04:00:00Z\">06/16/2026</time>\n",
+   "<time datetime=\"2026-06-08T04:00:00Z\">06/08/2026</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/maximus-health-inc-dba-maximus-730095-06082026\">Maximus Health, Inc. dba Maximus</a>",
+   "Center for Drug Evaluation and Research (CDER)",
+   "False &amp; Misleading Claims/Misbranded (Telehealth)<br />\r\n",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2026-09-22T04:00:00Z\">09/22/2026</time>\n",
+   "<time datetime=\"2026-07-07T04:00:00Z\">07/07/2026</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/specialty-health-products-co-llc-726564-07072026\">Specialty Health Products CO, LLC</a>",
+   "Center for Devices and Radiological Health",
+   "CGMP/QSR/Medical Devices/Adulterated<br />\r\n",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2026-06-09T04:00:00Z\">06/09/2026</time>\n",
+   "<time datetime=\"2026-05-29T04:00:00Z\">05/29/2026</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/macau-union-pharmaceutical-limited-724506-05292026\">Macau-Union Pharmaceutical Limited</a>",
+   "Center for Drug Evaluation and Research (CDER)",
+   "Nonprescription/OTC",
+   "",
+   "",
+   ""
+  ],
+  [
+   "<time datetime=\"2023-08-22T13:20:00Z\">08/22/2023</time>\n",
+   "<time datetime=\"2023-06-26T04:00:00Z\">06/26/2023</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/lone-pine-farm-654161-06262023\">Lone Pine Farm</a>",
+   " Division of Human and Animal Food Operations West II ",
+   "PHS Act/Shell Egg Regulation/Adulterated",
+   "",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/lone-pine-farm-654161-03022026\"><time datetime=\"2026-03-17T04:00:00Z\">03/17/2026</time>\n</a>",
+   ""
+  ],
+  [
+   "<time datetime=\"2023-08-22T13:20:00Z\">08/22/2023</time>\n",
+   "<time datetime=\"2023-06-26T04:00:00Z\">06/26/2023</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/lone-pine-farm-654161-06262023\">Lone Pine Farm</a>",
+   " Division of Human and Animal Food Operations West II ",
+   "PHS Act/Shell Egg Regulation/Adulterated",
+   "",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/lone-pine-farm-654161-03022026\"><time datetime=\"2026-03-17T04:00:00Z\">03/17/2026</time>\n</a>",
+   ""
+  ],
+  [
+   "<time datetime=\"2026-08-18T04:00:00Z\">08/18/2026</time>\n",
+   "<time datetime=\"2026-07-06T04:00:00Z\">07/06/2026</time>\n",
+   "<a href=\"/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/waves-and-wine-inc-724861-07062026\">Waves and Wine, Inc. </a>",
+   "Center for Veterinary Medicine",
+   "CGMP/Hazard Analysis/Risk-Based Preventive Controls for Food for Animals (PCAF)/Adulterated",
+   "",
+   "",
+   ""
+  ]
+ ]
+}
