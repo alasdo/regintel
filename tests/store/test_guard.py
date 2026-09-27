@@ -68,3 +68,9 @@ def test_stale_parent_is_a_concurrent_write(store: LocalStore) -> None:
     guarded_commit(store, {"raw/letters/y/1.html": b"y"}, "other writer", old)
     with pytest.raises(ConcurrentWriteError):
         guarded_commit(store, {"raw/letters/z/1.html": b"z"}, "late", old)
+
+
+def test_local_list_paths(store: LocalStore) -> None:
+    head = store.head_revision()
+    assert store.list_paths("raw/letters/", head) == ["raw/letters/x/abc.html"]
+    assert store.list_paths("raw/", head) == ["raw/letters/x/abc.html", MANIFEST]

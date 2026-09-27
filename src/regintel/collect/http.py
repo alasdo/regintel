@@ -73,6 +73,10 @@ class PoliteClient:
             event_hooks=hooks,
         )
 
+    def now(self) -> datetime:
+        """Current UTC time from the injected clock (tests control it)."""
+        return self._now()
+
     def close(self) -> None:
         self._http.close()
 

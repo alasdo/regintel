@@ -49,6 +49,9 @@ class FakeApi:
         self.sha = f"rev{len(self.commits)}"
         return type("CommitInfo", (), {"oid": self.sha})()
 
+    def list_repo_files(self, repo_id: str, **kw: Any) -> list[str]:
+        return list(self.files)
+
     def repo_exists(self, repo_id: str, **kw: Any) -> bool:
         return repo_id in self.repos
 
@@ -64,6 +67,8 @@ def test_read_exists_and_commit_with_parent(tmp_path: Path) -> None:
     assert store.read_bytes("raw/manifest.jsonl", head) == b"a\n"
     assert store.read_bytes("raw/missing", head) is None
     assert store.exists("raw/manifest.jsonl", head)
+    assert store.list_paths("raw/", head) == ["raw/manifest.jsonl"]
+    assert store.list_paths("probe/", head) == []
     new = store.commit({"raw/letters/x/1.html": b"x"}, "msg", head)
     assert new == "rev1"
     assert api.commits[0]["parent_commit"] == "rev0"

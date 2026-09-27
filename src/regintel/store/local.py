@@ -31,6 +31,13 @@ class LocalStore:
     def exists(self, path: str, revision: str) -> bool:
         return self.read_bytes(path, revision) is not None
 
+    def list_paths(self, prefix: str, revision: str) -> list[str]:
+        self._check_head(revision)
+        if not self._tree.exists():
+            return []
+        paths = (f.relative_to(self._tree).as_posix() for f in self._tree.rglob("*") if f.is_file())
+        return sorted(p for p in paths if p.startswith(prefix))
+
     def commit(self, additions: Mapping[str, bytes], message: str, parent_revision: str) -> str:
         self._check_head(parent_revision)
         for path, data in additions.items():

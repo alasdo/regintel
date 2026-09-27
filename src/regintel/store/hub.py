@@ -37,6 +37,10 @@ class HubStore:
     def exists(self, path: str, revision: str) -> bool:
         return self._api.file_exists(self.repo_id, path, repo_type=REPO_TYPE, revision=revision)
 
+    def list_paths(self, prefix: str, revision: str) -> list[str]:
+        files = self._api.list_repo_files(self.repo_id, repo_type=REPO_TYPE, revision=revision)
+        return sorted(f for f in files if f.startswith(prefix))
+
     def commit(self, additions: Mapping[str, bytes], message: str, parent_revision: str) -> str:
         operations = [
             CommitOperationAdd(path_in_repo=path, path_or_fileobj=data)

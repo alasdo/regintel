@@ -172,8 +172,11 @@ def _fetch_all_pages(client: PoliteClient, page_size: int) -> tuple[list[Listing
     return rows, None
 
 
-def fetch_listing(client: PoliteClient, page_size: int = 500) -> list[ListingRow]:
-    """All listing rows, deduplicated, in listing order. Refetches once if rows shifted."""
+def fetch_listing(client: PoliteClient, page_size: int = 500) -> tuple[list[ListingRow], int]:
+    """All listing rows, deduplicated, in listing order, plus the number of duplicates dropped.
+
+    Refetches the whole listing once if rows shifted while paging.
+    """
     rows, problem = _fetch_all_pages(client, page_size)
     if problem:
         log.warning("listing inconsistent (%s); refetching once", problem)
@@ -187,4 +190,4 @@ def fetch_listing(client: PoliteClient, page_size: int = 500) -> list[ListingRow
         log.info("dropped %d identical duplicate listing rows", dropped)
     if not any(letter_type(r.subject) for r in unique):
         raise ListingSchemaError("listing has no in-scope rows: drift or a block")
-    return unique
+    return unique, dropped

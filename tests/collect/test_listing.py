@@ -115,11 +115,11 @@ def test_fetch_listing_paginates(
     fixtures_dir: Path, make_client: Callable[[], PoliteClient]
 ) -> None:
     route = _serve([_pages(fixtures_dir, 5)], 5)
-    rows = fetch_listing(make_client(), page_size=5)
+    rows, dropped = fetch_listing(make_client(), page_size=5)
     assert route.call_count == 3
-    expected, dropped = dedupe_rows(parse_listing_page(_page(fixtures_dir))[1])
+    expected, expected_dropped = dedupe_rows(parse_listing_page(_page(fixtures_dir))[1])
     assert rows == expected  # page order kept; identical Lone Pine Farm duplicate dropped
-    assert (len(rows), dropped) == (13, 1)
+    assert (len(rows), dropped) == (13, expected_dropped) == (13, 1)
 
 
 @respx.mock
@@ -129,7 +129,7 @@ def test_fetch_listing_detects_shift_then_recovers(
     shifted = _pages(fixtures_dir, 5)
     shifted[2] = {**shifted[2], "recordsTotal": 15}  # a letter was posted mid-paging
     route = _serve([shifted, _pages(fixtures_dir, 5)], 5)
-    assert len(fetch_listing(make_client(), page_size=5)) == 13
+    assert len(fetch_listing(make_client(), page_size=5)[0]) == 13
     assert route.call_count == 6
 
 
