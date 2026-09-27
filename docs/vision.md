@@ -43,14 +43,14 @@ Raw letter HTML, parsed text and every classification run are kept as versioned 
 
 Everything runs at **$0/month**:
 
-- **Collection:** a weekly GitHub Actions job (free for public repos) fetches new letters, parses them and commits them. It never calls a model.
-- **Classification:** runs on my PC (RTX 4060, 8 GB VRAM) with a quantised 7–8B model in Ollama, at temperature 0 with a fixed seed. The model is chosen on the dev set only. Results are committed with the model, prompt hash and run date. The site shows **"classified up to <date>"**. Newer letters are searchable but marked *not yet classified*.
-- **Serving:** a small FastAPI backend and a custom HTML/CSS/JS front end in a Hugging Face Docker Space on free CPU. The design comes from `/design` (DESIGN.md) and is checked with `/ui-review`. No Gradio or Streamlit. Indexes are built offline and shipped with the image. Query embedding uses a small CPU model.
+- **Collection:** a weekly GitHub Actions job (free for public repos) fetches new letters and Data Dashboard citations. It pushes the raw HTML and a manifest (sha256, URL, retrieved_at) to a Hugging Face Dataset repo. It only collects: parsing, classification and indexing happen on my PC, and it never calls a model.
+- **Classification:** runs on my PC (RTX 4060, 8 GB VRAM) with a quantised 7–8B model in Ollama, at temperature 0 with a fixed seed. The model is chosen on the dev set only. Results are versioned in the HF Dataset with the model, prompt hash and run date. The evaluation evidence (gold labels, splits, results) lives in git. The site shows **"classified up to <date>"**. Newer letters are searchable but marked *not yet classified*.
+- **Serving:** a small FastAPI backend and a custom HTML/CSS/JS front end in a Hugging Face Docker Space on free CPU. The design comes from `/design` (DESIGN.md) and is checked with `/ui-review`. No Gradio or Streamlit. Indexes are built offline on my PC and published as a bundle to the HF Dataset. The Space pulls a pinned revision at startup. Query embedding uses a small CPU model.
 - **No paid APIs, databases or hosting.** Cold starts on the free Space are an accepted trade-off.
 
 ## Evaluation protocol
 
-All gold labels are mine, produced **blind**: no model output is seen before labelling is finished.
+All gold labels are mine, produced **blind per letter**: model and baseline outputs on the 150 sample letters stay hidden until all 150 are labelled. A code guard enforces this. Letters outside the sample may be classified earlier, for the walking skeleton.
 
 1. **Labelling guide and baseline mapping first.** Before any labelling, I write `docs/labelling-guide.md`: the category definitions, the boundary rules from the taxonomy table, and worked examples. The CFR-citation → category mapping the baseline uses is frozen in the same commit, before any model output exists. Any change to either after labelling starts is logged in the guide's changelog.
 2. **Labelling tool.** An early deliverable: a fast local tool that shows each letter with its observations already split out, a checkbox per category, and a quote field that is checked as verbatim when saved. It never shows model or baseline output. Target: about 4 minutes per letter.
@@ -59,8 +59,12 @@ All gold labels are mine, produced **blind**: no model output is seen before lab
 5. **Baseline.** A deterministic CFR-citation mapping: extract 21 CFR / FD&C Act / Q7 references from the letter and map them to categories using the table below. Results are reported overall and by letter type; API letters cite fewer CFR sections, so they are likely to be the baseline's weak spot.
 6. **Metrics.** Per-category precision, recall and F1 with support and 95% bootstrap CIs, plus micro and macro averages. The headline numbers get a **paired bootstrap** 95% CI: letters are resampled with replacement (10,000 resamples, fixed seed), and model and baseline are scored on the same resample. CIs are reported for macro-F1 (model − baseline) and for model micro-F1. A category with fewer than 5 test positives is reported as *insufficient support* and left out of macro-F1, with a note. Categories are never quietly merged.
 7. **Quote verification.** A label counts only if its quote is a verbatim span of the letter after whitespace normalisation. A label that fails is dropped before scoring, and the drop rate is reported.
-8. **Self-consistency.** 20 letters (seeded, drawn from dev and test) are re-labelled at least 3 days later without looking at the first pass. I report Cohen's κ per category. A category with κ < 0.6 is flagged *ill-defined* in the eval report and the UI. Test gold is not changed; guide fixes go to the next version.
+8. **Self-consistency.** 20 letters (seeded, drawn from the test split only, so their model outputs are still unseen) are re-labelled at least 3 days later, before the test run, without looking at the first pass. I report Cohen's κ per category. A category with κ < 0.6 is flagged *ill-defined* in the eval report and the UI. Test gold is not changed; guide fixes go to the next version.
 9. **Search.** About 40 questions, each with known relevant letters, written before retrieval is built. Metrics are recall@5 for hybrid versus BM25-only and embeddings-only, plus citation validity. Fusion parameters are not tuned on this set.
+
+### Limitations
+
+- **Residual priming.** Blindness is per letter, not global. While labelling, I may already have seen model output on letters outside the sample, which could shift my labels towards the model's tendencies. This is reported as a limitation of the gold set. It is not corrected for.
 
 ### Success criteria (test set)
 
@@ -79,9 +83,9 @@ Pass bars are judged on point estimates, with the CIs shown next to them. If a p
 
 v1 reported 82% classification accuracy, 97.4% citation validity and recall@5 of 0.72. The 82% came from 11 cases whose gold labels were stored next to the model's output, and it had no baseline. Citation validity only checked that a cited section had been retrieved, and it was measured after a retry. v2 keeps what worked: structured output, citation checking, and iteration notes on failure modes. It fixes how the numbers are measured: blind gold, a held-out test set, a baseline, CIs, and verbatim quote checks.
 
-## Timeline and priorities (one week)
+## Timeline and priorities (8 days: Day 0 planning plus 7 build days)
 
-Build order starts with ingestion, the labelling guide with the frozen baseline mapping, and the labelling tool, so labelling can begin by day 2. Protected, never cut: the labelling guide, the labelling tool, 150 blind labels, the baseline, the single test-set evaluation, and deployed search. If the week slips, cut in this order: (1) Data Dashboard trend views, (2) front-end polish beyond `/ui-review` blockers, (3) the weekly Action, replaced by a manual collection script.
+Build order starts with ingestion, the labelling guide with the frozen baseline mapping, and the labelling tool, so labelling can begin by day 2. Protected, never cut: the labelling guide, the labelling tool, 150 blind labels, the baseline, the single test-set evaluation, and deployed search. If the schedule slips, cut in this order: (1) Data Dashboard trend views, (2) front-end polish beyond `/ui-review` blockers, (3) the weekly Action, replaced by a manual collection script.
 
 **Risks:** labelling 150 letters plus 20 re-labels is the critical path. With the labelling tool at about 4 min per letter, that is roughly 11–12 h, up to about 20 h if long letters run 7 min. Mitigation: time the first 10 letters, and if the pace is over 6 min, fix the tool (observation splitting, quote entry) before continuing, not the guide. Long letters may exceed the context that fits in 8 GB VRAM; the mitigation is to classify per numbered observation and take the union of labels. Warning-letter HTML varies in format across years.
 
